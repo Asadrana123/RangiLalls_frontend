@@ -32,19 +32,7 @@ const Login = () => {
     }
   };
 
-  const handleCaptchaChange = (value) => {
-    setFormData((prev) => ({
-      ...prev,
-      captcha: value,
-    }));
-    if (errors.captcha) {
-      setErrors((prev) => ({
-        ...prev,
-        captcha: "",
-      }));
-    }
-  };
-
+ 
   const validateForm = () => {
     const newErrors = {};
     if (!formData.email) newErrors.email = "email is required";
@@ -52,6 +40,13 @@ const Login = () => {
     if (!formData.captcha) newErrors.captcha = "Captcha is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+  const handleCaptchaVerify = (token) => {
+    setFormData((prev) => ({
+      ...prev,
+      captcha: token,
+    }));
+    console.log('Captcha token:', token);
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -130,7 +125,7 @@ const Login = () => {
               <p className="mt-1 text-xs text-red-500">{errors.password}</p>
             )}
           {/* Captcha */}
-          <Captcha onChange={handleCaptchaChange} />
+          <Captcha onCaptchaVerify={handleCaptchaVerify} />
           {errors.captcha && (
             <p className="mt-1 text-xs text-red-500">{errors.captcha}</p>
           )}
