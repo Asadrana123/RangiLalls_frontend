@@ -365,8 +365,7 @@ const Registration = () => {
         const response = await api.post('/auth/register', formData);
         console.log(response.data);
         setSubmitStatus('success');
-        setSubmitMessage('Registration successful');;
-        dispatch(setSuccess(response.data));
+        setSubmitMessage('Registration successful! Please check your email to verify your account.');;
         // navigate('/');
       } catch (error) {
         dispatch(setError(error.response?.data?.error || 'Registration failed'));

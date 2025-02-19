@@ -8,6 +8,7 @@ import AuctionDetails from "./Pages/AuctionDetails";
 import TenderPayment from "./Pages/TenderPayment";
 import ForgotPassword from "./Pages/ForgotPassword";
 import PrivateRoutes from "./Routes/PrivateRoutes";
+import VerifyEmail from "./Pages/VerifyEmail";
 import { checkAuthStatus } from "./redux/Slices/authSlice";
 import ContactUs from "./Pages/ContactUs";
 import { useDispatch } from "react-redux";
@@ -32,6 +33,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/property/:id" element={<AuctionDetails />} />
         <Route path="/contact" element={<ContactUs />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route element={<PrivateRoutes />}>
           <Route path="/property/:id/tender-payment" element={<TenderPayment />} />
         </Route>

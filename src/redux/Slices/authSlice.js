@@ -22,7 +22,7 @@ const authSlice = createSlice({
   initialState: {
     user: null,
     token: localStorage.getItem('token'),
-    loading: false,
+    loading: true,
     error: null,
     success: false
   },
@@ -38,7 +38,6 @@ const authSlice = createSlice({
       state.error = action.payload;
     },
     setSuccess: (state, action) => {
-      console.log(action.payload.token);
       state.loading = false;
       state.success = true;
       state.user = action.payload.user;

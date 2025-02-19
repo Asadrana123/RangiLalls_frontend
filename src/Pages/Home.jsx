@@ -8,11 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import {ModernFilterSection} from '../Components/HomePage/CustomInput';
 const Home = () => {
-  const dispatch = useDispatch();
   const { properties, loading, error } = useSelector((state) => state.property);
-  useEffect(() => {
-    dispatch(fetchProperties());
-  }, [dispatch]);
   const handleSearch = (filters) => {
     console.log("Searching with filters:", filters);
   };

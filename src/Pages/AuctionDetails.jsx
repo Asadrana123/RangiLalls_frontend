@@ -50,7 +50,7 @@ const PropertyDetails = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { id } = useParams();
   const navigate = useNavigate();
-  const { properties,loading,error } = useSelector((state) => state.property);
+  const { properties, loading, error } = useSelector((state) => state.property);
   const property = properties.find((p) => p._id === id);
 
   if (loading) {
@@ -77,6 +77,11 @@ const PropertyDetails = () => {
     { id: 'documents', label: 'Documents', icon: FileSpreadsheet }
   ];
 
+  // Extract customer name without property number if present
+  const customerName = property["CUSTOMER NAME"] 
+    ? property["CUSTOMER NAME"].split("(Property")[0].trim() 
+    : "";
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -87,18 +92,18 @@ const PropertyDetails = () => {
               <InfoCard 
                 icon={IndianRupee}
                 label="Reserve Price"
-                value={`₹${property.reservePrice?.toLocaleString()}`}
+                value={`₹${property["Reserve Price (Rs.)"]?.toLocaleString()}`}
                 variant="highlight"
               />
               <InfoCard 
                 icon={Timer}
                 label="Auction Date"
-                value={new Date(property.auctionDate).toLocaleDateString()}
+                value={property["Auction Date"]}
               />
               <InfoCard 
                 icon={Users}
-                label="Bank"
-                value={property.noticeDetails?.issuedBy}
+                label="Vendor"
+                value={property["Vendor"]}
               />
             </div>
 
@@ -113,15 +118,23 @@ const PropertyDetails = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">Property Type</p>
-                    <p className="font-medium">{property.assetType}</p>
+                    <p className="font-medium">{property["Property Type"]}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Location</p>
-                    <p className="font-medium">{property.propertyAddress}</p>
+                    <p className="font-medium">{property["Property Location (City)"]}, {property["State"]}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Zone</p>
-                    <p className="font-medium">{property.zoneName}</p>
+                    <p className="font-medium">{property["ZONE"]}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Region</p>
+                    <p className="font-medium">{property["REGION"]}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Possession Type</p>
+                    <p className="font-medium">{property["Types of  Possession"]}</p>
                   </div>
                 </div>
               </div>
@@ -136,19 +149,22 @@ const PropertyDetails = () => {
                   <div className="flex items-center gap-4">
                     <div className="w-2 h-2 rounded-full bg-[#d12b3f]" />
                     <div>
-                      <p className="text-sm text-gray-500">Registration Deadline</p>
-                      <p className="font-medium">
-                        {new Date(property.participationClosingDate?.date).toLocaleDateString()} at {property.participationClosingDate?.time}
-                      </p>
+                      <p className="text-sm text-gray-500">EMD Submission Deadline</p>
+                      <p className="font-medium">{property[" EMD Submission"]}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="w-2 h-2 rounded-full bg-[#d12b3f]" />
                     <div>
-                      <p className="text-sm text-gray-500">Auction Time</p>
-                      <p className="font-medium">
-                        {property.bidTimeDetails?.timeIn} - {property.bidTimeDetails?.time}
-                      </p>
+                      <p className="text-sm text-gray-500">Auction Date</p>
+                      <p className="font-medium">{property["Auction Date"]}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-2 h-2 rounded-full bg-[#d12b3f]" />
+                    <div>
+                      <p className="text-sm text-gray-500">Auction ID</p>
+                      <p className="font-medium">{property["Auction ID"]}</p>
                     </div>
                   </div>
                 </div>
@@ -158,19 +174,17 @@ const PropertyDetails = () => {
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Phone className="w-5 h-5 text-[#d12b3f]" />
-                  Contact Information
+                  Account Information
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-500">Help Line</p>
-                    <p className="font-medium">{property.helpLineNo}</p>
+                    <p className="text-sm text-gray-500">Loan Account No</p>
+                    <p className="font-medium">{property["Loan Account No"]}</p>
                   </div>
-                  {property.inspectionDetails && (
-                    <div>
-                      <p className="text-sm text-gray-500">Inspection Contact</p>
-                      <p className="font-medium">{property.inspectionDetails.contactDetails}</p>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-sm text-gray-500">CIF ID</p>
+                    <p className="font-medium">{property["CIF ID"]}</p>
+                  </div>
                 </div>
               </div>
 
@@ -182,22 +196,15 @@ const PropertyDetails = () => {
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-500">Earnest Money</p>
-                    <p className="font-medium">₹{property.earnestMoney?.toLocaleString()}</p>
+                    <p className="text-sm text-gray-500">Reserve Price</p>
+                    <p className="font-medium">₹{property["Reserve Price (Rs.)"]?.toLocaleString()}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Incremental Value</p>
-                    <p className="font-medium">₹{property.incrementalValue?.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Outstanding Amount</p>
-                    <p className="font-medium">₹{property.outstandingAmount?.toLocaleString()}</p>
-                  </div>
+                  {/* If you have EMD amount, add it here */}
                 </div>
               </div>
             </div>
 
-            {/* Map Section */}
+            {/* Map Section - Conditionally rendered if location coordinates exist */}
             {property.location && property.location.coordinates && (
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div className="p-4 border-b">
@@ -205,7 +212,7 @@ const PropertyDetails = () => {
                 </div>
                 <PropertyMap
                   coordinates={property.location.coordinates}
-                  address={property.propertyAddress}
+                  address={`${property["Property Location (City)"]}, ${property["State"]}`}
                 />
               </div>
             )}
@@ -221,11 +228,11 @@ const PropertyDetails = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-sm text-gray-500">Name</p>
-                  <p className="font-medium">{property.borrowerDetails?.name}</p>
+                  <p className="font-medium">{customerName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Address</p>
-                  <p className="font-medium">{property.borrowerDetails?.address}</p>
+                  <p className="text-sm text-gray-500">CIF ID</p>
+                  <p className="font-medium">{property["CIF ID"]}</p>
                 </div>
               </div>
             </div>
@@ -233,25 +240,8 @@ const PropertyDetails = () => {
             {/* Property Description */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold mb-4">Detailed Description</h3>
-              <p className="text-gray-600">{property.description}</p>
+              <p className="text-gray-600">{property["Property Schedule"]}</p>
             </div>
-
-            {/* Inspection Details */}
-            {property.inspectionDetails && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold mb-4">Inspection Schedule</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm text-gray-500">Date</p>
-                    <p className="font-medium">{property.inspectionDetails.date}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Time</p>
-                    <p className="font-medium">{property.inspectionDetails.time}</p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         );
 
@@ -274,6 +264,11 @@ const PropertyDetails = () => {
     }
   };
 
+  // Get property title from customer name or default to property location
+  const propertyTitle = property["CUSTOMER NAME"] 
+    ? `${property["Property Type"]} - ${customerName}`
+    : `${property["Property Type"]} in ${property["Property Location (City)"]}`;
+
   return (
     <div className="min-h-screen bg-gray-50 mt-20">
       {/* Header */}
@@ -282,11 +277,11 @@ const PropertyDetails = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-800">
-                {property.auctionTitle}
+                {propertyTitle}
               </h1>
               <div className="flex items-center gap-2 text-gray-500 mt-1">
                 <MapPin className="w-4 h-4" />
-                <span>{property.noticeDetails?.issuedBranch}</span>
+                <span>{property["Property Location (City)"]}, {property["State"]}</span>
               </div>
             </div>
             <button
