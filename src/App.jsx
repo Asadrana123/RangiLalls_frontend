@@ -9,6 +9,7 @@ import TenderPayment from "./Pages/TenderPayment";
 import ForgotPassword from "./Pages/ForgotPassword";
 import PrivateRoutes from "./Routes/PrivateRoutes";
 import VerifyEmail from "./Pages/VerifyEmail";
+import Footer from "./Components/Layout/Footer";
 import { checkAuthStatus } from "./redux/Slices/authSlice";
 import ContactUs from "./Pages/ContactUs";
 import { useDispatch } from "react-redux";
@@ -38,6 +39,7 @@ function App() {
           <Route path="/property/:id/tender-payment" element={<TenderPayment />} />
         </Route>
       </Routes>
+      <Footer/>
     </Router>
   );
 }
