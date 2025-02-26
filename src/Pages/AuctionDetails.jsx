@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import PropertyMap from "../Components/AuctionDetails/PropertyMap";
-import { 
-  Calendar, 
-  MapPin, 
-  Phone, 
+import {
+  Calendar,
+  MapPin,
+  Phone,
   Clock,
   IndianRupee,
   FileText,
@@ -15,16 +15,14 @@ import {
   ArrowRight,
   Info,
   Home,
-  FileSpreadsheet
-} from 'lucide-react';
+  FileSpreadsheet,
+} from "lucide-react";
 
 const TabButton = ({ active, icon: Icon, label, onClick }) => (
   <button
     onClick={onClick}
     className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-all ${
-      active 
-        ? 'bg-[#d12b3f] text-white' 
-        : 'text-gray-600 hover:bg-gray-50'
+      active ? "bg-[#d12b3f] text-white" : "text-gray-600 hover:bg-gray-50"
     }`}
   >
     <Icon className="w-5 h-5" />
@@ -33,11 +31,11 @@ const TabButton = ({ active, icon: Icon, label, onClick }) => (
 );
 
 const InfoCard = ({ icon: Icon, label, value, variant }) => (
-  <div className={`flex items-center gap-3 p-4 rounded-lg ${
-    variant === 'highlight' 
-      ? 'bg-[#fff5f6] text-[#d12b3f]' 
-      : 'bg-gray-50'
-  }`}>
+  <div
+    className={`flex items-center gap-3 p-4 rounded-lg ${
+      variant === "highlight" ? "bg-[#fff5f6] text-[#d12b3f]" : "bg-gray-50"
+    }`}
+  >
     <Icon className="w-6 h-6" />
     <div>
       <p className="text-sm text-gray-500">{label}</p>
@@ -47,7 +45,7 @@ const InfoCard = ({ icon: Icon, label, value, variant }) => (
 );
 
 const PropertyDetails = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const { id } = useParams();
   const navigate = useNavigate();
   const { properties, loading, error } = useSelector((state) => state.property);
@@ -57,50 +55,50 @@ const PropertyDetails = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-gray-500 bg-gray-50 px-6 py-4 rounded-lg">
-           Loading
+          Loading
         </div>
       </div>
     );
   }
- if (error || !property) {
+  if (error || !property) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-gray-500 bg-gray-50 px-6 py-4 rounded-lg">
-             Property not found
+          Property not found
         </div>
       </div>
     );
   }
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: Home },
-    { id: 'details', label: 'Property Details', icon: Info },
-    { id: 'documents', label: 'Documents', icon: FileSpreadsheet }
+    { id: "overview", label: "Overview", icon: Home },
+    { id: "details", label: "Property Details", icon: Info },
+    { id: "documents", label: "Documents", icon: FileSpreadsheet },
   ];
 
   // Extract customer name without property number if present
-  const customerName = property["CUSTOMER NAME"] 
-    ? property["CUSTOMER NAME"].split("(Property")[0].trim() 
+  const customerName = property["CUSTOMER NAME"]
+    ? property["CUSTOMER NAME"].split("(Property")[0].trim()
     : "";
-
+  
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'overview':
+      case "overview":
         return (
           <div className="space-y-8">
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <InfoCard 
+              <InfoCard
                 icon={IndianRupee}
                 label="Reserve Price"
                 value={`₹${property["Reserve Price (Rs.)"]?.toLocaleString()}`}
                 variant="highlight"
               />
-              <InfoCard 
+              <InfoCard
                 icon={Timer}
                 label="Auction Date"
                 value={property["Auction Date"]}
               />
-              <InfoCard 
+              <InfoCard
                 icon={Users}
                 label="Vendor"
                 value={property["Vendor"]}
@@ -122,7 +120,10 @@ const PropertyDetails = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Location</p>
-                    <p className="font-medium">{property["Property Location (City)"]}, {property["State"]}</p>
+                    <p className="font-medium">
+                      {property["Property Location (City)"]},{" "}
+                      {property["State"]}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Zone</p>
@@ -134,7 +135,9 @@ const PropertyDetails = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Possession Type</p>
-                    <p className="font-medium">{property["Types of  Possession"]}</p>
+                    <p className="font-medium">
+                      {property["Types of  Possession"]}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -149,8 +152,12 @@ const PropertyDetails = () => {
                   <div className="flex items-center gap-4">
                     <div className="w-2 h-2 rounded-full bg-[#d12b3f]" />
                     <div>
-                      <p className="text-sm text-gray-500">EMD Submission Deadline</p>
-                      <p className="font-medium">{property[" EMD Submission"]}</p>
+                      <p className="text-sm text-gray-500">
+                        EMD Submission Deadline
+                      </p>
+                      <p className="font-medium">
+                        {property[" EMD Submission"]}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -197,7 +204,9 @@ const PropertyDetails = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">Reserve Price</p>
-                    <p className="font-medium">₹{property["Reserve Price (Rs.)"]?.toLocaleString()}</p>
+                    <p className="font-medium">
+                      ₹{property["Reserve Price (Rs.)"]?.toLocaleString()}
+                    </p>
                   </div>
                   {/* If you have EMD amount, add it here */}
                 </div>
@@ -219,12 +228,14 @@ const PropertyDetails = () => {
           </div>
         );
 
-      case 'details':
+      case "details":
         return (
           <div className="space-y-8">
             {/* Borrower Details */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4">Borrower Information</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Borrower Information
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-sm text-gray-500">Name</p>
@@ -239,13 +250,15 @@ const PropertyDetails = () => {
 
             {/* Property Description */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4">Detailed Description</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Detailed Description
+              </h3>
               <p className="text-gray-600">{property["Property Schedule"]}</p>
             </div>
           </div>
         );
 
-      case 'documents':
+      case "documents":
         return (
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h3 className="text-lg font-semibold mb-4">Property Documents</h3>
@@ -265,7 +278,7 @@ const PropertyDetails = () => {
   };
 
   // Get property title from customer name or default to property location
-  const propertyTitle = property["CUSTOMER NAME"] 
+  const propertyTitle = property["CUSTOMER NAME"]
     ? `${property["Property Type"]} - ${customerName}`
     : `${property["Property Type"]} in ${property["Property Location (City)"]}`;
 
@@ -281,7 +294,9 @@ const PropertyDetails = () => {
               </h1>
               <div className="flex items-center gap-2 text-gray-500 mt-1">
                 <MapPin className="w-4 h-4" />
-                <span>{property["Property Location (City)"]}, {property["State"]}</span>
+                <span>
+                  {property["Property Location (City)"]}, {property["State"]}
+                </span>
               </div>
             </div>
             <button
@@ -295,7 +310,7 @@ const PropertyDetails = () => {
 
           {/* Tab Navigation */}
           <div className="flex gap-2 mt-6">
-            {tabs.map(tab => (
+            {tabs.map((tab) => (
               <TabButton
                 key={tab.id}
                 active={activeTab === tab.id}
@@ -309,9 +324,7 @@ const PropertyDetails = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {renderTabContent()}
-      </div>
+      <div className="max-w-7xl mx-auto px-4 py-8">{renderTabContent()}</div>
     </div>
   );
 };

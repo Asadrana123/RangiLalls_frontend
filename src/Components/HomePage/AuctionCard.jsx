@@ -6,62 +6,59 @@ import {
   Landmark, 
   ArrowRight, 
   Timer,
-  IndianRupee
+  IndianRupee,
+  Gavel
 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-
+import { isRegistrationOpen,isAuctionLive,getTimeRemaining } from "../../Utils/helper";
 const AuctionCard = ({ auction }) => {
   const navigate = useNavigate();
   
   if (!auction) {
     return <p className="text-red-500">Error: Auction data is missing.</p>;
   }
-
-  const getTimeRemaining = (endDate) => {
-    if (!endDate) return 0;
-    
-    const parsedEndDate = parseDate(endDate);
-    const total = parsedEndDate - Date.now();
-    const days = Math.floor(total / (1000 * 60 * 60 * 24));
-    return days > 0 ? days : 0;
-  };
-
-  // Helper to parse various date formats
-  const parseDate = (dateStr) => {
-    if (!dateStr) return new Date();
-    
-    // Handle "DD-MMM-YY" format (like "10-Jan-25")
-    if (dateStr.includes('-')) {
-      const parts = dateStr.split('-');
-      if (parts.length === 3) {
-        const monthNames = {
-          'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-          'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-        };
-        
-        const day = parseInt(parts[0], 10);
-        const month = monthNames[parts[1]];
-        let year = parseInt(parts[2], 10);
-        // Adjust two-digit year
-        year = year < 100 ? (year < 50 ? 2000 + year : 1900 + year) : year;
-        
-        return new Date(year, month, day);
-      }
-    }
-    
-    // Fallback to standard date parsing
-    return new Date(dateStr);
-  };
-
-  // Extract customer name without property number if present
   const customerName = auction["CUSTOMER NAME"] 
     ? auction["CUSTOMER NAME"].split("(Property")[0].trim() 
     : "";
 
   // Calculate days left until EMD submission deadline
+  const isLive = isAuctionLive(auction["Auction Date"]);
+  const canRegister = isRegistrationOpen(auction[" EMD Submission"], auction["Auction Date"]);
   const daysLeft = getTimeRemaining(auction[" EMD Submission"]);
   const progressPercentage = Math.min(100, Math.max(0, (daysLeft / 30) * 100));
+  const renderActionButton = () => {
+    if (isLive) {
+      return (
+        <button 
+          className="flex-1 px-6 py-4 text-white bg-primary hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 font-medium border border-transparent hover:border-primary"
+          onClick={() => window.location.href=`/property/${auction._id}/live-auction`}
+        >
+          <Gavel className="w-4 h-4" />
+          Bid Now
+        </button>
+      );
+    }
 
+    if (canRegister) {
+      return (
+        <button 
+          className="flex-1 px-6 py-4 text-white bg-primary hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 font-medium border border-transparent hover:border-green-600"
+          onClick={() => window.location.href=`/property/${auction._id}/tender-payment`}
+        >
+          Register Now
+        </button>
+      );
+    }
+
+    return (
+      <button 
+        className="flex-1 px-6 py-4 text-gray-500 bg-gray-100 cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+        disabled
+      >
+        Registration Closed
+      </button>
+    );
+  };
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
       <div className="p-6">
@@ -170,20 +167,14 @@ const AuctionCard = ({ auction }) => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex border-t border-gray-100">
+      <div className="flex gap-2">
         <button 
-          className="flex-1 px-6 py-4 text-gray-600 hover:bg-gray-50 transition-colors border border-transparent hover:border-primary"
+          className="flex-1 px-6 py-4 text-primary-dark transition-colors border border-primary hover:border-primary"
           onClick={() => window.location.href=`/property/${auction._id}`}
         >
           View Property Details
         </button>
-        <button 
-          className="flex-1 px-6 py-4 text-white bg-primary hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 font-medium border border-transparent hover:border-primary"
-          onClick={() =>  window.location.href=`/property/${auction._id}/tender-payment`}
-        >
-          Bid Now
-          <ArrowRight className="w-4 h-4" />
-        </button>
+        {renderActionButton()}
       </div>
     </div>
   );

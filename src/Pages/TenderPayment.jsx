@@ -8,7 +8,7 @@ const TenderPayment = () => {
 
   // Find the selected property from store
   const selectedProperty = properties.find(property => property._id === id);
-
+  console.log(selectedProperty)
   if (!selectedProperty) {
     return (
       <div className="text-center text-gray-500 p-4">
@@ -19,20 +19,19 @@ const TenderPayment = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle payment submission
-    console.log('Tender fees submitted:', tenderFees);
+    window.location.href=`/property/${selectedProperty._id}/auction-registration`;
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4 mt-20">
+    <div className="max-w-3xl mx-auto p-4 mt-20 min-h-[50vh]">
       <h1 className="text-2xl font-semibold mb-8">
-        <span className="text-orange-500">Tender Payment</span> for E-Auction
+        <span className="text-primary">Tender Payment</span> for E-Auction
       </h1>
 
       <div className="mb-8">
         <h2 className="text-xl">
-          <span className="text-gray-600">AUCTION TITLE : </span>
-          <span className="text-orange-500">{selectedProperty.auctionTitle}</span>
+          <span className="text-gray-600">AUCTION ID : </span>
+          <span className="text-primary">{selectedProperty['Auction ID']}</span>
         </h2>
       </div>
 
@@ -53,7 +52,7 @@ const TenderPayment = () => {
 
         <button
           type="submit"
-          className="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition-colors"
+          className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark transition-colors"
         >
           I ACCEPT, REGISTER ME
         </button>

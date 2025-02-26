@@ -6,7 +6,7 @@ const propertySlice = createSlice({
   name: 'property',
   initialState: {
     properties: [],
-    loading: false,
+    loading: true,
     error: null
   },
   reducers: {

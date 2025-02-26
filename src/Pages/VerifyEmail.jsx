@@ -34,7 +34,7 @@ const VerifyEmail = () => {
   
 
   return (
-    <div className="max-w-md mx-auto my-10 p-6 bg-white rounded-lg shadow-md mt-24">
+    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md my-24">
       {status === 'verifying' && (
         <div className="text-center">
           <h2 className="text-2xl font-semibold mb-4">Verifying your email...</h2>

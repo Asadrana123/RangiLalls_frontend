@@ -3,96 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import {setSuccess,setError,setLoading} from "../redux/Slices/authSlice";
+import StatusMessage from '../Components/Registration/StatusMessage';
+import Input from '../Components/Registration/Input';
+import Select from '../Components/Registration/Select';
 import api from "../Utils/axios"
-// Input Component
-const Input = ({ 
-  label, 
-  type = "text", 
-  value, 
-  onChange, 
-  required, 
-  placeholder, 
-  maxLength, 
-  note,
-  error,
-  onBlur 
-}) => (
-  <div className="mb-4">
-    <label className="block text-gray-700 text-sm font-medium mb-1">
-      {label} {required && <span className="text-primary">*</span>}
-    </label>
-    <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      onBlur={onBlur}
-      placeholder={placeholder}
-      maxLength={maxLength}
-      className={`w-full p-2 border rounded-md transition-colors
-        ${error 
-          ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-          : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'
-        }`}
-    />
-    {note && <p className="text-xs text-gray-500 mt-1">{note}</p>}
-    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-  </div>
-);
-
-// Select Component
-const Select = ({ 
-  label, 
-  value, 
-  onChange, 
-  options, 
-  required, 
-  placeholder,
-  error,
-  onBlur 
-}) => (
-  <div className="mb-4">
-    <label className="block text-gray-700 text-sm font-medium mb-1">
-      {label} {required && <span className="text-orange-500">*</span>}
-    </label>
-    <select
-      value={value}
-      onChange={onChange}
-      onBlur={onBlur}
-      className={`w-full p-2 border rounded-md transition-colors
-        ${error 
-          ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-          : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'
-        }`}
-    >
-      <option value="">{placeholder}</option>
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-  </div>
-);
-
-// Status Message Component
-const StatusMessage = ({ status, message }) => {
-  if (!status) return null;
-
-  const styles = status === 'success'
-    ? 'bg-green-50 text-green-800 border-green-500'
-    : 'bg-red-50 text-red-800 border-red-500';
-
-  const Icon = status === 'success' ? CheckCircle : AlertCircle;
-
-  return (
-    <div className={`mb-4 p-4 rounded-md border ${styles} flex items-start`}>
-      <Icon className="h-5 w-5 mr-2 mt-0.5" />
-      <span>{message}</span>
-    </div>
-  );
-};
-
 const Registration = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();

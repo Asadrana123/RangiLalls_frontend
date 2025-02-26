@@ -3,22 +3,14 @@ import AuctionCard from "../Components/HomePage/AuctionCard";
 import StatsSection from "../Components/HomePage/StatsSection";
 import FilterSection from "../Components/HomePage/FilterSection";
 import { Loader } from "lucide-react";
-import { fetchProperties } from "../redux/Slices/propertySlice";
-import { useDispatch, useSelector } from "react-redux";
+import {  useSelector } from "react-redux";
 import { useEffect } from "react";
 import {ModernFilterSection} from '../Components/HomePage/CustomInput';
 import SEO from "../Utils/SEO";
 const Home = () => {
-  const { properties, loading, error } = useSelector((state) => state.property);
+  const { properties,error } = useSelector((state) => state.property);
   const handleSearch = (filters) => {
     console.log("Searching with filters:", filters);
-  };
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader className="animate-spin h-8 w-8 text-primary" />
-      </div>
-    );
   }
   if (error) {
     return (
@@ -48,11 +40,12 @@ const Home = () => {
         </div>
 
         {/* Auction Listings */}
-        <div className="space-y-6">
-        {properties.map((auction) => (
-          <AuctionCard key={auction.id} auction={auction} />
-        ))}
-        </div>
+        
+            <div className="space-y-6">
+              {properties.map((auction) => (
+                <AuctionCard key={auction._id} auction={auction} />
+              ))}
+            </div>
       </div>
     </div>
     </>
