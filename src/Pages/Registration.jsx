@@ -181,8 +181,6 @@ const Registration = () => {
         return value !== formData.password ? "Passwords don't match" : "";
       case 'mobile':
         return validateMobile(value);
-      case 'landlineNo':
-            return validateLandline(value);
       case 'firstName':
         return !value ? "First name is required" : "";
       case 'lastName':
@@ -196,8 +194,7 @@ const Registration = () => {
       case 'pincode':
         return validatePincode(value);
       case 'pancardNo':
-        return validatePanCard(value);
-     
+        return validatePanCard(value); 
       default:
         return "";
     }
@@ -382,7 +379,6 @@ const Registration = () => {
                 value={formData.landlineNo}
                 onChange={handleInputChange('landlineNo')}
                 onBlur={handleBlur('landlineNo')}
-                required
                 error={errors.landlineNo}
               />
               <Input

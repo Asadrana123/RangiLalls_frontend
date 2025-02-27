@@ -27,7 +27,7 @@ const LiveAuctionRoom = () => {
   const [property, setProperty] = useState(null);
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
   const [socket, setSocket] = useState(null);
 
   // Bidding state
@@ -54,10 +54,10 @@ const LiveAuctionRoom = () => {
 
     // Set auction hours (10 AM to 5 PM)
     const startTime = new Date(today);
-    startTime.setHours(12, 0, 0, 0);
+    startTime.setHours(7, 0, 0, 0);
 
     const endTime = new Date(today);
-    endTime.setHours(17, 0, 0, 0);
+    endTime.setHours(12, 0, 0, 0);
     
     if (today < startTime) {
         const temp= Math.floor((endTime - today) / 1000);
@@ -90,24 +90,35 @@ const LiveAuctionRoom = () => {
       setBidHistory(status.recentBids || []);
     });
 
-    newSocket.on("bid-update", (update) => {
+    newSocket.on('bid-update', (update) => {
       setCurrentBid(update.currentBid);
       setCurrentBidder(update.currentBidder);
-      setBidHistory((prev) => [update, ...prev].slice(0, 50));
-      setError("");
-
-      // Handle auto-bidding
-      if (
-        isAutoBidding &&
-        update.currentBidder?.id !== user._id &&
-        update.currentBid + autoBidIncrement <= parseFloat(maxAutoBidAmount)
-      ) {
+      setBidHistory(prev => [update, ...prev].slice(0, 50));
+      setError('');
+    
+      // Improved auto-bidding logic with better logging
+      console.log("Bid update received:", update);
+      console.log("Auto bidding status:", isAutoBidding);
+      console.log("Current bidder ID:", update.currentBidder?.id);
+      console.log("User ID:", user._id);
+      console.log("Max auto bid:", parseFloat(maxAutoBidAmount));
+      console.log("Next potential bid:", update.currentBid + autoBidIncrement);
+      
+      if (isAutoBidding && 
+          update.currentBidder?.id !== user._id && 
+          update.currentBid + autoBidIncrement <= parseFloat(maxAutoBidAmount)) {
+        console.log("Auto-bidding triggered!");
         setTimeout(() => {
-          newSocket.emit("place-bid", {
-            auctionId: prop["Auction ID"],
-            bidAmount: update.currentBid + autoBidIncrement,
+          newSocket.emit('place-bid', {
+            auctionId: property["Auction ID"],
+            bidAmount: update.currentBid + autoBidIncrement
           });
         }, 1000);
+      } else {
+        console.log("Auto-bidding not triggered because:", 
+          !isAutoBidding ? "auto-bidding is off" : 
+          update.currentBidder?.id === user._id ? "bid is from current user" : 
+          "next bid would exceed maximum");
       }
     });
 
@@ -170,6 +181,30 @@ const LiveAuctionRoom = () => {
       }
     };
   }, [id, properties]);
+  useEffect(() => {
+    const fetchAutoBiddingSettings = async () => {
+      try {
+        if (!property) return;
+        
+        const response = await api.get(`/auto-bidding/settings/${property["Auction ID"]}`);
+        
+        if (response.data.success && response.data.data) {
+          const settings = response.data.data;
+          
+          if (settings.enabled) {
+            setIsAutoBidding(true);
+            setMaxAutoBidAmount(settings.maxAmount.toString());
+            setAutoBidIncrement(settings.increment);
+            console.log("Loaded auto-bidding settings:", settings);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching auto-bidding settings:", error);
+      }
+    };
+    
+    fetchAutoBiddingSettings();
+  }, [property]);
   // Add this useEffect after the main initialization effect
   useEffect(() => {
     let timerInterval;
@@ -229,16 +264,38 @@ const LiveAuctionRoom = () => {
   };
 
   // Auto-bidding toggle handler
-  const toggleAutoBidding = () => {
-    if (
-      !isAutoBidding &&
-      (!maxAutoBidAmount || parseFloat(maxAutoBidAmount) <= currentBid)
-    ) {
-      setError("Please set a valid maximum auto-bid amount");
-      return;
+  const toggleAutoBidding = async () => {
+    try {
+      // Validation checks
+      if (!isAutoBidding) {
+        const maxAmount = parseFloat(maxAutoBidAmount);
+        
+        if (isNaN(maxAmount) || maxAmount <= currentBid) {
+          setError("Please enter a maximum bid amount");
+          return;
+        }
+      }
+      
+      const newValue = !isAutoBidding;
+      
+      // Save to server first
+      const response = await api.post('/api/auto-bidding/settings', {
+        auctionId: property["Auction ID"],
+        enabled: newValue,
+        maxAmount: parseFloat(maxAutoBidAmount),
+        increment: parseInt(autoBidIncrement)
+      });
+      
+      if (response.data.success) {
+        // Only update UI if save was successful
+        setIsAutoBidding(newValue);
+        setError("");
+        console.log("Auto-bidding settings saved:", response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to save auto-bidding settings:", error);
+      setError("Failed to save auto-bidding settings");
     }
-    setIsAutoBidding(!isAutoBidding);
-    setError("");
   };
 
   // Time formatter
@@ -349,7 +406,7 @@ const LiveAuctionRoom = () => {
                     type="submit"
                     disabled={timeLeft <= 0 || timeLeft > 5 * 3600}
                     className={`px-6 py-3 rounded-lg flex items-center gap-2 ${
-                      timeLeft <= 0 || timeLeft > 7 * 3600
+                      timeLeft <= 0 || timeLeft > 5 * 3600
                         ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                         : "bg-primary text-white hover:bg-primary-dark transition-colors"
                     }`}
@@ -359,7 +416,7 @@ const LiveAuctionRoom = () => {
                   </button>
                 </div>
 
-                {error && (
+                {error && error.includes("Please enter a valid bid amount higher than")&& (
                   <div className="flex items-center gap-2 text-red-500">
                     <AlertCircle className="w-5 h-5" />
                     <p>{error}</p>
@@ -394,11 +451,23 @@ const LiveAuctionRoom = () => {
                 </div>
                 <button
                   onClick={toggleAutoBidding}
-                  className="w-full p-2 rounded-lg transition-colors bg-primary text-white"
+                  disabled={timeLeft <= 0 || timeLeft > 5 * 3600}
+                  className={`w-full p-2 rounded-lg transition-color ${
+                    timeLeft <= 0 || timeLeft > 5 * 3600
+                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      : "bg-primary text-white hover:bg-primary-dark transition-colors"
+                  }`}
+                  
                 >
                   {isAutoBidding ? "Stop Auto Bidding" : "Start Auto Bidding"}
                 </button>
               </div>
+              {error && error.includes("Please enter a maximum bid amount") && (
+                  <div className="flex items-center gap-2 text-red-500">
+                    <AlertCircle className="w-5 h-5" />
+                    <p>{error}</p>
+                  </div>
+                )}
             </div>
           </div>
 
