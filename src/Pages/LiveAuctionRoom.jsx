@@ -37,12 +37,14 @@ const LiveAuctionRoom = () => {
   const [bidAmount, setBidAmount] = useState("");
   const [timeLeft, setTimeLeft] = useState(null);
   const [bidHistory, setBidHistory] = useState([]);
+  const autoBiddingRef = useRef(false);
+  const maxAutoBidAmountRef = useRef("");
+  const autoBidIncrementRef = useRef(1000);
 
   // Auto-bidding state
   const [isAutoBidding, setIsAutoBidding] = useState(false);
   const [maxAutoBidAmount, setMaxAutoBidAmount] = useState("");
   const [autoBidIncrement, setAutoBidIncrement] = useState(1000);
-
   const chatContainerRef = useRef(null);
 
   // Socket initialization function
@@ -57,12 +59,12 @@ const LiveAuctionRoom = () => {
     startTime.setHours(7, 0, 0, 0);
 
     const endTime = new Date(today);
-    endTime.setHours(12, 0, 0, 0);
-    
+    endTime.setHours(14, 0, 0, 0);
+
     if (today < startTime) {
-        const temp= Math.floor((endTime - today) / 1000);
-        console.log(temp);
-        return temp;
+      const temp = Math.floor((endTime - today) / 1000);
+      console.log(temp);
+      return temp;
     }
 
     // If after 5 PM, show 0
@@ -95,28 +97,27 @@ const LiveAuctionRoom = () => {
       setCurrentBidder(update.currentBidder);
       setBidHistory(prev => [update, ...prev].slice(0, 50));
       setError('');
-    
-      // Improved auto-bidding logic with better logging
+      
       console.log("Bid update received:", update);
-      console.log("Auto bidding status:", isAutoBidding);
+      console.log("Auto bidding status:", autoBiddingRef.current);  // Use ref
       console.log("Current bidder ID:", update.currentBidder?.id);
       console.log("User ID:", user._id);
-      console.log("Max auto bid:", parseFloat(maxAutoBidAmount));
-      console.log("Next potential bid:", update.currentBid + autoBidIncrement);
+      console.log("Max auto bid:", parseFloat(maxAutoBidAmountRef.current));  // Use ref
+      console.log("Next potential bid:", update.currentBid + autoBidIncrementRef.current);  // Use ref
       
-      if (isAutoBidding && 
+      if (autoBiddingRef.current && 
           update.currentBidder?.id !== user._id && 
-          update.currentBid + autoBidIncrement <= parseFloat(maxAutoBidAmount)) {
+          update.currentBid + autoBidIncrementRef.current <= parseFloat(maxAutoBidAmountRef.current)) {
         console.log("Auto-bidding triggered!");
         setTimeout(() => {
           newSocket.emit('place-bid', {
             auctionId: property["Auction ID"],
-            bidAmount: update.currentBid + autoBidIncrement
+            bidAmount: update.currentBid + autoBidIncrementRef.current
           });
         }, 1000);
       } else {
         console.log("Auto-bidding not triggered because:", 
-          !isAutoBidding ? "auto-bidding is off" : 
+          !autoBiddingRef.current ? "auto-bidding is off" : 
           update.currentBidder?.id === user._id ? "bid is from current user" : 
           "next bid would exceed maximum");
       }
@@ -185,14 +186,19 @@ const LiveAuctionRoom = () => {
     const fetchAutoBiddingSettings = async () => {
       try {
         if (!property) return;
-        
-        const response = await api.get(`/auto-bidding/settings/${property["Auction ID"]}`);
-        
+
+        const response = await api.get(
+          `/auto-bidding/settings/${property["Auction ID"]}`
+        );
+
         if (response.data.success && response.data.data) {
           const settings = response.data.data;
-          
+
           if (settings.enabled) {
             setIsAutoBidding(true);
+            autoBiddingRef.current = true;
+            maxAutoBidAmountRef.current=settings.maxAmount.toString();
+            autoBidIncrementRef.current=settings.increment;
             setMaxAutoBidAmount(settings.maxAmount.toString());
             setAutoBidIncrement(settings.increment);
             console.log("Loaded auto-bidding settings:", settings);
@@ -202,7 +208,7 @@ const LiveAuctionRoom = () => {
         console.error("Error fetching auto-bidding settings:", error);
       }
     };
-    
+
     fetchAutoBiddingSettings();
   }, [property]);
   // Add this useEffect after the main initialization effect
@@ -269,35 +275,45 @@ const LiveAuctionRoom = () => {
       // Validation checks
       if (!isAutoBidding) {
         const maxAmount = parseFloat(maxAutoBidAmount);
-        
+
         if (isNaN(maxAmount) || maxAmount <= currentBid) {
           setError("Please enter a maximum bid amount");
           return;
         }
       }
-      
+
       const newValue = !isAutoBidding;
-      
       // Save to server first
-      const response = await api.post('/api/auto-bidding/settings', {
+      const response = await api.post("/auto-bidding/settings", {
         auctionId: property["Auction ID"],
         enabled: newValue,
         maxAmount: parseFloat(maxAutoBidAmount),
-        increment: parseInt(autoBidIncrement)
+        increment: parseInt(autoBidIncrement),
       });
-      
+
       if (response.data.success) {
         // Only update UI if save was successful
         setIsAutoBidding(newValue);
         setError("");
         console.log("Auto-bidding settings saved:", response.data.data);
+        autoBiddingRef.current = newValue;
       }
     } catch (error) {
       console.error("Failed to save auto-bidding settings:", error);
       setError("Failed to save auto-bidding settings");
     }
   };
-
+  const handleMaxAmountChange = (e) => {
+    const value = e.target.value;
+    setMaxAutoBidAmount(value);
+    maxAutoBidAmountRef.current = value;
+  };
+  
+  const handleIncrementChange = (e) => {
+    const value = parseInt(e.target.value);
+    setAutoBidIncrement(value);
+    autoBidIncrementRef.current = value;
+  };
   // Time formatter
   const formatTime = (seconds) => {
     if (!seconds) return "--:--:--";
@@ -416,12 +432,15 @@ const LiveAuctionRoom = () => {
                   </button>
                 </div>
 
-                {error && error.includes("Please enter a valid bid amount higher than")&& (
-                  <div className="flex items-center gap-2 text-red-500">
-                    <AlertCircle className="w-5 h-5" />
-                    <p>{error}</p>
-                  </div>
-                )}
+                {error &&
+                  error.includes(
+                    "Please enter a valid bid amount higher than"
+                  ) && (
+                    <div className="flex items-center gap-2 text-red-500">
+                      <AlertCircle className="w-5 h-5" />
+                      <p>{error}</p>
+                    </div>
+                  )}
               </form>
 
               {/* Auto Bidding */}
@@ -431,7 +450,7 @@ const LiveAuctionRoom = () => {
                   <input
                     type="number"
                     value={maxAutoBidAmount}
-                    onChange={(e) => setMaxAutoBidAmount(e.target.value)}
+                    onChange={handleMaxAmountChange}
                     className="p-2 border rounded-lg"
                     placeholder="Maximum bid amount"
                     disabled={isAutoBidding}
@@ -439,9 +458,7 @@ const LiveAuctionRoom = () => {
                   <input
                     type="number"
                     value={autoBidIncrement}
-                    onChange={(e) =>
-                      setAutoBidIncrement(parseInt(e.target.value))
-                    }
+                    onChange={handleIncrementChange}                    
                     className="p-2 border rounded-lg"
                     placeholder="Bid increment"
                     min="1000"
@@ -457,17 +474,16 @@ const LiveAuctionRoom = () => {
                       ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary-dark transition-colors"
                   }`}
-                  
                 >
                   {isAutoBidding ? "Stop Auto Bidding" : "Start Auto Bidding"}
                 </button>
               </div>
               {error && error.includes("Please enter a maximum bid amount") && (
-                  <div className="flex items-center gap-2 text-red-500">
-                    <AlertCircle className="w-5 h-5" />
-                    <p>{error}</p>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-red-500">
+                  <AlertCircle className="w-5 h-5" />
+                  <p>{error}</p>
+                </div>
+              )}
             </div>
           </div>
 
