@@ -15,7 +15,7 @@ import {
   ArrowBigUp,
 } from "lucide-react";
 import { useParams } from "react-router-dom";
-
+let temp=0;
 // Main component
 const LiveAuctionRoom = () => {
   // Redux state
@@ -59,7 +59,7 @@ const LiveAuctionRoom = () => {
     startTime.setHours(7, 0, 0, 0);
 
     const endTime = new Date(today);
-    endTime.setHours(14, 0, 0, 0);
+    endTime.setHours(22, 0, 0, 0);
 
     if (today < startTime) {
       const temp = Math.floor((endTime - today) / 1000);
@@ -91,24 +91,30 @@ const LiveAuctionRoom = () => {
       setParticipants(status.participants);
       setBidHistory(status.recentBids || []);
     });
-
+    newSocket.on('participant-update',(status)=>{
+      setParticipants(status.count);
+    })
     newSocket.on('bid-update', (update) => {
       setCurrentBid(update.currentBid);
       setCurrentBidder(update.currentBidder);
-      setBidHistory(prev => [update, ...prev].slice(0, 50));
+      setBidHistory(prev => {
+        // Check if this bid already exists in history
+        const exists = prev.some(bid => 
+          bid.timestamp === update.timestamp && 
+          bid.currentBid === update.currentBid &&
+          bid.currentBidder?.id === update.currentBidder?.id
+        );
+        
+        // If it exists, return existing history, otherwise add new bid
+        return exists ? prev : [update, ...prev].slice(0, 50);
+      });
       setError('');
-      
-      console.log("Bid update received:", update);
-      console.log("Auto bidding status:", autoBiddingRef.current);  // Use ref
-      console.log("Current bidder ID:", update.currentBidder?.id);
-      console.log("User ID:", user._id);
-      console.log("Max auto bid:", parseFloat(maxAutoBidAmountRef.current));  // Use ref
-      console.log("Next potential bid:", update.currentBid + autoBidIncrementRef.current);  // Use ref
+      console.log(bidHistory);
       
       if (autoBiddingRef.current && 
           update.currentBidder?.id !== user._id && 
           update.currentBid + autoBidIncrementRef.current <= parseFloat(maxAutoBidAmountRef.current)) {
-        console.log("Auto-bidding triggered!");
+
         setTimeout(() => {
           newSocket.emit('place-bid', {
             auctionId: property["Auction ID"],
@@ -123,7 +129,7 @@ const LiveAuctionRoom = () => {
       }
     });
 
-    newSocket.on("timer-update", setTimeLeft);
+    //newSocket.on("timer-update", setTimeLeft);
     newSocket.on("bid-error", (errorMessage) => {
       setError(errorMessage);
       setIsAutoBidding(false);
@@ -393,7 +399,7 @@ const LiveAuctionRoom = () => {
                       "Loading..."
                     ) : timeLeft === 0 ? (
                       <span className="text-red-500">Auction Ended</span>
-                    ) : timeLeft > 5 * 3600 ? (
+                    ) : timeLeft > 15 * 3600 ? (
                       <span className="text-green-500">Starts at 10:00 AM</span>
                     ) : (
                       formatTime(timeLeft)
@@ -420,9 +426,9 @@ const LiveAuctionRoom = () => {
                   </div>
                   <button
                     type="submit"
-                    disabled={timeLeft <= 0 || timeLeft > 5 * 3600}
+                    disabled={timeLeft <= 0 || timeLeft > 15 * 3600}
                     className={`px-6 py-3 rounded-lg flex items-center gap-2 ${
-                      timeLeft <= 0 || timeLeft > 5 * 3600
+                      timeLeft <= 0 || timeLeft > 15 * 3600
                         ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                         : "bg-primary text-white hover:bg-primary-dark transition-colors"
                     }`}
@@ -468,9 +474,9 @@ const LiveAuctionRoom = () => {
                 </div>
                 <button
                   onClick={toggleAutoBidding}
-                  disabled={timeLeft <= 0 || timeLeft > 5 * 3600}
+                  disabled={timeLeft <= 0 || timeLeft > 15 * 3600}
                   className={`w-full p-2 rounded-lg transition-color ${
-                    timeLeft <= 0 || timeLeft > 5 * 3600
+                    timeLeft <= 0 || timeLeft > 15 * 3600
                       ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary-dark transition-colors"
                   }`}

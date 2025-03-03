@@ -46,14 +46,12 @@ const Login = () => {
       ...prev,
       captcha: token,
     }));
-    console.log('Captcha token:', token);
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     setIsLoading(true);
     try {
-      console.log("hi");
       const response = await api.post("/auth/login", formData);
       dispatch(setSuccess(response.data));
       navigate('/'); 

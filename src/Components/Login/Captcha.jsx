@@ -6,7 +6,6 @@ const Captcha = ({ onCaptchaVerify }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const recaptchaRef = useRef(null);
-  console.log(import.meta.env.VITE_RECAPTCHA_SITE_KEY);
   const handleCaptchaChange = (token) => {
     setError(null);
     setCaptchaToken(token);

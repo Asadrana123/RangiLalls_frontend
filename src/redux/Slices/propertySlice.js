@@ -31,7 +31,7 @@ export const fetchProperties = () => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const response = await api.get('/properties');
-    console.log(response.data);
+    console.log(response);
     dispatch(setProperties(response.data.data));
   } catch (error) {
     console.log(error);
