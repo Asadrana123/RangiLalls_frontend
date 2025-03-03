@@ -90,7 +90,7 @@ const PropertyDetails = () => {
               <InfoCard
                 icon={IndianRupee}
                 label="Reserve Price"
-                value={`₹${property["Reserve Price (Rs.)"]?.toLocaleString()}`}
+                value={`${property["Reserve Price (Rs"][')']?.toLocaleString()}`}
                 variant="highlight"
               />
               <InfoCard
@@ -156,7 +156,7 @@ const PropertyDetails = () => {
                         EMD Submission Deadline
                       </p>
                       <p className="font-medium">
-                        {property[" EMD Submission"]}
+                        {property["EMD Submission"]}
                       </p>
                     </div>
                   </div>
@@ -205,7 +205,7 @@ const PropertyDetails = () => {
                   <div>
                     <p className="text-sm text-gray-500">Reserve Price</p>
                     <p className="font-medium">
-                      ₹{property["Reserve Price (Rs.)"]?.toLocaleString()}
+                    ₹{property["Reserve Price (Rs"][')']?.toLocaleString()}
                     </p>
                   </div>
                   {/* If you have EMD amount, add it here */}

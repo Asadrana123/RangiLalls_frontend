@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { isRegistrationOpen,isAuctionLive,getTimeRemaining } from "../../Utils/helper";
 const AuctionCard = ({ auction }) => {
   const navigate = useNavigate();
-  
+  console.log(auction["Reserve Price (Rs.)"]);
   if (!auction) {
     return <p className="text-red-500">Error: Auction data is missing.</p>;
   }
@@ -24,7 +24,7 @@ const AuctionCard = ({ auction }) => {
   // Calculate days left until EMD submission deadline
   const isLive = isAuctionLive(auction["Auction Date"]);
   const canRegister = isRegistrationOpen(auction[" EMD Submission"], auction["Auction Date"]);
-  const daysLeft = getTimeRemaining(auction[" EMD Submission"]);
+  const daysLeft = getTimeRemaining(auction["EMD Submission"]);
   const progressPercentage = Math.min(100, Math.max(0, (daysLeft / 30) * 100));
   const renderActionButton = () => {
     if (isLive) {
@@ -96,7 +96,7 @@ const AuctionCard = ({ auction }) => {
               <div className="flex items-center gap-1">
                 <IndianRupee className="w-5 h-5 text-gray-700" />
                 <span className="text-2xl font-bold text-gray-800">
-                  {auction["Reserve Price (Rs.)"]?.toLocaleString() || "N/A"}
+                {`${auction["Reserve Price (Rs"][')']?.toLocaleString()}` || "N/A"}
                 </span>
               </div>
             </div>
@@ -162,7 +162,7 @@ const AuctionCard = ({ auction }) => {
 
         {/* Participation Info */}
         <div className="text-sm text-gray-600">
-          EMD Submission deadline: {auction[" EMD Submission"] || "N/A"}
+          EMD Submission deadline: {auction["EMD Submission"] || "N/A"}
         </div>
       </div>
 
