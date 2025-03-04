@@ -13,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { isRegistrationOpen,isAuctionLive,getTimeRemaining } from "../../Utils/helper";
 const AuctionCard = ({ auction }) => {
   const navigate = useNavigate();
-  console.log(auction["Reserve Price (Rs.)"]);
   if (!auction) {
     return <p className="text-red-500">Error: Auction data is missing.</p>;
   }
@@ -23,7 +22,7 @@ const AuctionCard = ({ auction }) => {
 
   // Calculate days left until EMD submission deadline
   const isLive = isAuctionLive(auction["Auction Date"]);
-  const canRegister = isRegistrationOpen(auction[" EMD Submission"], auction["Auction Date"]);
+  const canRegister = isRegistrationOpen(auction["EMD Submission"], auction["Auction Date"]);
   const daysLeft = getTimeRemaining(auction["EMD Submission"]);
   const progressPercentage = Math.min(100, Math.max(0, (daysLeft / 30) * 100));
   const renderActionButton = () => {
