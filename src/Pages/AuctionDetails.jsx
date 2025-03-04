@@ -300,7 +300,7 @@ const PropertyDetails = () => {
               </div>
             </div>
             <button
-              onClick={() => navigate(`/property/${id}/tender-payment`)}
+              onClick={() => navigate(`/property/${id}/live-auction`)}
               className="px-6 py-3 bg-[#d12b3f] text-white rounded-lg hover:bg-[#b82537] transition-colors flex items-center gap-2"
             >
               Participate in Auction
