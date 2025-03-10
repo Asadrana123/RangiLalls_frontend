@@ -139,7 +139,7 @@ const AuctionRegistrationForm = () => {
       case 'ifscCode':
         return validateIfscCode(value);
       case 'offerValue':
-        const minValue = selectedProperty['Reserve Price (Rs.)'];
+        const minValue = selectedProperty["Reserve Price (Rs"][')'];
         return !value ? "Offer value is required" : 
                parseFloat(value) < minValue ? `Offer must be at least ₹${minValue.toLocaleString()}` : "";
       case 'utrNo':
@@ -219,6 +219,7 @@ const AuctionRegistrationForm = () => {
         formDataToSend.append(key, formData[key]);
       }
     });
+    console.log(selectedProperty);
     formDataToSend.append('auctionId',selectedProperty['Auction ID']);
     formDataToSend.append('email',user.email);
     formDataToSend.append('auctionDate',selectedProperty['Auction Date']);
@@ -226,7 +227,6 @@ const AuctionRegistrationForm = () => {
     if (formData.pancardFile) formDataToSend.append('pancardFile', formData.pancardFile);
     if (formData.addressProof) formDataToSend.append('addressProof', formData.addressProof);
     if (formData.paymentReceipt) formDataToSend.append('paymentReceipt', formData.paymentReceipt);
-  
     setIsLoading(true);
     try {
       const response = await api.post('/auction/register', formDataToSend, {
@@ -234,7 +234,6 @@ const AuctionRegistrationForm = () => {
           'Content-Type': 'multipart/form-data'
         }
       });
-      console.log(response);
       setSubmitStatus('success');
       setSubmitMessage('Registration successful! Please check your email for further instructions.');
     } catch (error) {
@@ -463,7 +462,7 @@ const AuctionRegistrationForm = () => {
                 required
                 placeholder="Enter offer value"
               />
-              <p className="text-sm text-gray-500 mt-1">(Reserve Price : {selectedProperty['Reserve Price (Rs.)']})</p>
+              <p className="text-sm text-gray-500 mt-1">(Reserve Price : {selectedProperty["Reserve Price (Rs"][')'].toLocaleString()})</p>
             </div>
 
             <Select

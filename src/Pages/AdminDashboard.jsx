@@ -1,142 +1,126 @@
 import React, { useState } from 'react';
-import { Upload, AlertCircle, FileSpreadsheet, Check } from 'lucide-react';
+import PropertyUpload from '../Components/Admin/PropertyUpload';
+import RegistrationManagement from '../Components/Admin/RegistrationManagement';
+import { FileSpreadsheet, Users, Home } from 'lucide-react';
 import api from '../Utils/axios';
-
+import { useEffect } from 'react';
 const AdminDashboard = () => {
-  const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [uploadedItems, setUploadedItems] = useState(0);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      if (selectedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-          selectedFile.type === 'application/vnd.ms-excel') {
-        setFile(selectedFile);
-        setError('');
-      } else {
-        setFile(null);
-        setError('Please upload an Excel file (.xlsx or .xls)');
-      }
+  // Tab navigation component
+  const TabNavigation = () => (
+    <div className="flex border-b mb-6">
+      <TabButton
+        icon={<Home />}
+        label="Dashboard"
+        isActive={activeTab === 'dashboard'}
+        onClick={() => setActiveTab('dashboard')}
+      />
+      <TabButton
+        icon={<FileSpreadsheet />}
+        label="Property Upload"
+        isActive={activeTab === 'properties'}
+        onClick={() => setActiveTab('properties')}
+      />
+      <TabButton
+        icon={<Users />}
+        label="Registration Management"
+        isActive={activeTab === 'registrations'}
+        onClick={() => setActiveTab('registrations')}
+      />
+    </div>
+  );
+
+  // Tab button component
+  const TabButton = ({ icon, label, isActive, onClick }) => (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 px-4 py-2 border-b-2 ${
+        isActive 
+          ? 'border-primary text-primary font-medium' 
+          : 'border-transparent text-gray-500 hover:text-gray-700'
+      }`}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+
+  // Dashboard content based on active tab
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <AdminOverview />;
+      case 'properties':
+        return <PropertyUpload />;
+      case 'registrations':
+        return <RegistrationManagement />;
+      default:
+        return <PropertyUpload />;
     }
   };
 
-  const handleUpload = async () => {
-    if (!file) {
-      setError('Please select a file to upload');
-      return;
-    }
+  // Simple placeholder for dashboard overview
+ // Inside your AdminDashboard.jsx
+const AdminOverview = () => {
+  const [stats, setStats] = useState({
+    totalProperties: 0,
+    pendingRegistrations: 0,
+    activeAuctions: 0
+  });
+  const [loading, setLoading] = useState(true);
 
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
-    const formData = new FormData();
-    formData.append('propertiesFile', file);
-
-    try {
-      const response = await api.post('/admin/upload-properties', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/admin/dashboard-stats');
+        if (response.data.success) {
+          setStats(response.data.data);
         }
-      });
-
-      if (response.data.success) {
-        setSuccess(`Successfully uploaded ${response.data.count} properties`);
-        setUploadedItems(response.data.count);
-        setFile(null);
-      } else {
-        setError(response.data.error || 'Upload failed');
+      } catch (error) {
+        console.error('Failed to fetch dashboard statistics', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      setError(error.response?.data?.error || 'Error uploading file');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchDashboardStats();
+  }, []);
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <h2 className="text-xl font-semibold mb-4">Dashboard Overview</h2>
+      {loading ? (
+        <div className="flex justify-center p-4">Loading statistics...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <DashboardCard title="Total Properties" value={stats.totalProperties} />
+          <DashboardCard title="Pending Registrations" value={stats.pendingRegistrations} />
+          <DashboardCard title="Active Auctions" value={stats.activeAuctions} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+  // Dashboard card component
+  const DashboardCard = ({ title, value }) => (
+    <div className="bg-gray-50 p-4 rounded-lg">
+      <h3 className="text-sm text-gray-500 mb-1">{title}</h3>
+      <p className="text-2xl font-bold">{value}</p>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-        
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <FileSpreadsheet className="w-5 h-5 text-primary" />
-            Bulk Property Upload
-          </h2>
-          
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-            <input
-              type="file"
-              id="property-file"
-              className="hidden"
-              onChange={handleFileChange}
-              accept=".xlsx,.xls"
-            />
-            
-            <label htmlFor="property-file" className="cursor-pointer block mb-4">
-              <div className="flex flex-col items-center">
-                <Upload className="w-12 h-12 text-gray-400 mb-2" />
-                <p className="text-gray-600 mb-2">Drag and drop or click to upload an Excel file</p>
-                <p className="text-sm text-gray-500">(.xlsx or .xls format)</p>
-              </div>
-            </label>
-            
-            {file && (
-              <div className="mt-4 text-left bg-gray-50 p-3 rounded-lg flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{file.name}</p>
-                  <p className="text-sm text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
-                </div>
-                <button 
-                  onClick={() => setFile(null)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  Remove
-                </button>
-              </div>
-            )}
-            
-            {error && (
-              <div className="mt-4 text-red-500 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5" />
-                <p>{error}</p>
-              </div>
-            )}
-            
-            {success && (
-              <div className="mt-4 text-green-500 flex items-center gap-2">
-                <Check className="w-5 h-5" />
-                <p>{success}</p>
-              </div>
-            )}
-            
-            <button
-              onClick={handleUpload}
-              disabled={!file || loading}
-              className={`mt-6 px-6 py-3 rounded-lg flex items-center gap-2 mx-auto ${
-                !file || loading
-                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                  : "bg-primary text-white hover:bg-primary-dark transition-colors"
-              }`}
-            >
-              {loading ? 'Uploading...' : 'Upload Properties'}
-            </button>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         </div>
-        
-        {uploadedItems > 0 && (
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-4">Upload Summary</h2>
-            <p>Successfully uploaded {uploadedItems} properties.</p>
-            <p className="text-sm text-gray-500 mt-2">
-              Properties are now available in the system and will be visible on the website.
-            </p>
-          </div>
-        )}
+
+        <TabNavigation />
+        {renderContent()}
       </div>
     </div>
   );

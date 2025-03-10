@@ -59,7 +59,7 @@ const LiveAuctionRoom = () => {
     startTime.setHours(10, 0, 0, 0);
 
     const endTime = new Date(today);
-    endTime.setHours(13, 0, 0, 0);
+    endTime.setHours(17, 0, 0, 0);
 
     if (today < startTime) {
       const temp = Math.floor((endTime - today) / 1000);
@@ -399,7 +399,7 @@ const LiveAuctionRoom = () => {
                       "Loading..."
                     ) : timeLeft === 0 ? (
                       <span className="text-red-500">Auction Ended</span>
-                    ) : timeLeft > 3 * 3600 ? (
+                    ) : timeLeft > 7 * 3600 ? (
                       <span className="text-green-500">Starts at 10:00 AM</span>
                     ) : (
                       formatTime(timeLeft)
@@ -426,9 +426,9 @@ const LiveAuctionRoom = () => {
                   </div>
                   <button
                     type="submit"
-                    disabled={timeLeft <= 0 || timeLeft > 3 * 3600}
+                    disabled={timeLeft <= 0 || timeLeft > 7 * 3600}
                     className={`px-6 py-3 rounded-lg flex items-center gap-2 ${
-                      timeLeft <= 0 || timeLeft > 3 * 3600
+                      timeLeft <= 0 || timeLeft > 7 * 3600
                         ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                         : "bg-primary text-white hover:bg-primary-dark transition-colors"
                     }`}
@@ -474,9 +474,9 @@ const LiveAuctionRoom = () => {
                 </div>
                 <button
                   onClick={toggleAutoBidding}
-                  disabled={timeLeft <= 0 || timeLeft > 3 * 3600}
+                  disabled={timeLeft <= 0 || timeLeft > 7 * 3600}
                   className={`w-full p-2 rounded-lg transition-color ${
-                    timeLeft <= 0 || timeLeft > 3 * 3600
+                    timeLeft <= 0 || timeLeft > 7 * 3600
                       ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                       : "bg-primary text-white hover:bg-primary-dark transition-colors"
                   }`}
