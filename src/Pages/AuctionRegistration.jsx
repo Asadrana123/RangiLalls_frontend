@@ -139,7 +139,7 @@ const AuctionRegistrationForm = () => {
       case 'ifscCode':
         return validateIfscCode(value);
       case 'offerValue':
-        const minValue = selectedProperty["Reserve Price (Rs"][')'];
+        const minValue = selectedProperty["Reserve Price (Rs)"];
         return !value ? "Offer value is required" : 
                parseFloat(value) < minValue ? `Offer must be at least ₹${minValue.toLocaleString()}` : "";
       case 'utrNo':
@@ -462,7 +462,7 @@ const AuctionRegistrationForm = () => {
                 required
                 placeholder="Enter offer value"
               />
-              <p className="text-sm text-gray-500 mt-1">(Reserve Price : {selectedProperty["Reserve Price (Rs"][')'].toLocaleString()})</p>
+              <p className="text-sm text-gray-500 mt-1">(Reserve Price : {selectedProperty["Reserve Price (Rs)"].toLocaleString()})</p>
             </div>
 
             <Select

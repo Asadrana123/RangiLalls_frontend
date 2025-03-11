@@ -95,7 +95,7 @@ const AuctionCard = ({ auction }) => {
               <div className="flex items-center gap-1">
                 <IndianRupee className="w-5 h-5 text-gray-700" />
                 <span className="text-2xl font-bold text-gray-800">
-                {`${auction["Reserve Price (Rs"][')']?.toLocaleString()}` || "N/A"}
+                {`${auction["Reserve Price (Rs)"]?.toLocaleString()}` || "N/A"}
                 </span>
               </div>
             </div>

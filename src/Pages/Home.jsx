@@ -35,7 +35,7 @@ const Home = () => {
       
       // Price filter - check if reserve price is less than or equal to the specified price
       console.log(filters.price);
-      if (filters.price && property["Reserve Price (Rs"][')'] <= parseFloat(filters.price)) {
+      if (filters.price && property["Reserve Price (Rs)"] <= parseFloat(filters.price)) {
         return false;
       }
       

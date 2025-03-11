@@ -8,7 +8,9 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import api from "../../Utils/axios";
-
+import { Edit, Trash2, MoreVertical } from "lucide-react";
+import EditAuctionModal from "./EditAuction";
+import DeleteAuctionModal from "./DeleteAuction";
 const AuctionList = () => {
   // Get auctions/properties from Redux state instead of making API call
   const { properties } = useSelector((state) => state.property);
@@ -20,8 +22,50 @@ const AuctionList = () => {
   const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
   const [viewingRegistration, setViewingRegistration] = useState(null);
-  const [showRegistrationDetailsModal, setShowRegistrationDetailsModal] =
-    useState(false);
+  const [showRegistrationDetailsModal, setShowRegistrationDetailsModal] =useState(false);
+  const [editingAuction, setEditingAuction] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [deletingAuction, setDeletingAuction] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState({});
+  const handleEditAuction = (auction) => {
+    setEditingAuction(auction);
+    setShowEditModal(true);
+    setActionMenuOpen({});
+  };
+
+  const handleDeleteAuction = (auction) => {
+    setDeletingAuction(auction);
+    setShowDeleteModal(true);
+    setActionMenuOpen({});
+  };
+
+  const handleEditSuccess = (updatedData) => {
+    setShowEditModal(false);
+
+    // You would update your Redux store here if needed
+    alert("Auction updated successfully");
+
+    // If you need to refresh the data, you can dispatch your Redux action here
+    // dispatch(fetchProperties());
+  };
+
+  const handleDeleteSuccess = () => {
+    setShowDeleteModal(false);
+
+    // You would update your Redux store here if needed
+    alert("Auction deleted successfully");
+
+    // If you need to refresh the data, you can dispatch your Redux action here
+    // dispatch(fetchProperties());
+  };
+
+  const toggleActionMenu = (auctionId) => {
+    setActionMenuOpen((prev) => ({
+      ...prev,
+      [auctionId]: !prev[auctionId],
+    }));
+  };
   const updateStatus = async (registrationId, status) => {
     try {
       setStatusUpdateLoading(true);
@@ -414,13 +458,44 @@ const AuctionList = () => {
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleViewRegistrations(auction)}
-                      className="text-primary hover:text-primary-dark flex items-center justify-end gap-1"
-                    >
-                      <Users className="w-4 h-4" />
-                      View Registrations
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleViewRegistrations(auction)}
+                        className="text-primary hover:text-primary-dark flex items-center gap-1"
+                      >
+                        <Users className="w-4 h-4" />
+                        View Registrations
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() =>
+                            toggleActionMenu(auction["Auction ID"])
+                          }
+                          className="p-1 rounded-full hover:bg-gray-100"
+                        >
+                          <MoreVertical className="w-4 h-4 text-gray-500" />
+                        </button>
+
+                        {actionMenuOpen[auction["Auction ID"]] && (
+                          <div className="absolute right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-10 w-36 border">
+                            <button
+                              onClick={() => handleEditAuction(auction)}
+                              className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-gray-100"
+                            >
+                              <Edit className="w-4 h-4" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAuction(auction)}
+                              className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-gray-100 text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -439,6 +514,21 @@ const AuctionList = () => {
         <RegistrationDetailsModal
           registration={viewingRegistration}
           onClose={() => setShowRegistrationDetailsModal(false)}
+        />
+      )}
+      {showEditModal && editingAuction && (
+        <EditAuctionModal
+          auction={editingAuction}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+
+      {showDeleteModal && deletingAuction && (
+        <DeleteAuctionModal
+          auction={deletingAuction}
+          onClose={() => setShowDeleteModal(false)}
+          onSuccess={handleDeleteSuccess}
         />
       )}
     </div>
