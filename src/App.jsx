@@ -10,6 +10,7 @@ import ForgotPassword from "./Pages/ForgotPassword";
 import PrivateRoutes from "./Routes/PrivateRoutes";
 import PrivateAdminRoute from "./Routes/PrivateAdminRoute";
 import VerifyEmail from "./Pages/VerifyEmail";
+import ResetPassword from "./Pages/ResetPassword";
 import AuctionRegistration from "./Pages/AuctionRegistration";
 import Footer from "./Components/Layout/Footer";
 import { checkAuthStatus } from "./redux/Slices/authSlice";
@@ -54,6 +55,7 @@ function App() {
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/verify-email/:token" element={<VerifyEmail />} />
             <Route path="/unauthorized" element={<UnauthorizedPage/>}/>
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route element={<PrivateAdminRoute />}>
               <Route 
                 path="/admin"

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { User } from "lucide-react";
 import api from "../Utils/axios";
 import Captcha from "../Components/Login/Captcha";
+
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -12,24 +13,37 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [errors, setErrors] = useState({});
+
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
+    
+    // Clear errors for this field if any
+    if (errors[e.target.name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [e.target.name]: "",
+      }));
+    }
   };
+
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.email) newErrors.email = "email is required";
-    if (!formData.password) newErrors.password = "Password is required";
-    if (!formData.captcha) newErrors.captcha = "Captcha is required";
+    if (!formData.email) newErrors.email = "Email is required";
+    
+    // Uncomment if you want to use captcha
+    // if (!formData.captcha) newErrors.captcha = "Captcha is required";
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleCaptchaChange = (value) => {
     setFormData((prev) => ({
       ...prev,
-      capcha: value,
+      captcha: value,
     }));
     if (errors.captcha) {
       setErrors((prev) => ({
@@ -38,37 +52,56 @@ const ForgotPassword = () => {
       }));
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!validateForm()) return;
+    
     setLoading(true);
     setMessage(null);
+    
     try {
-      const response = await api.post("/api/auth/forgot-password", {
+      const response = await api.post("/auth/forgot-password", {
         email: formData.email,
       });
+      
       setMessage("Password reset instructions sent to your email");
-      setTimeout(() => navigate("/login"), 3000);
+
     } catch (err) {
-      setErrors(err.response.data.error);
+      console.error("Forgot password error:", err);
+      
+      if (err.response?.data?.error) {
+        // If error is an object with properties
+        if (typeof err.response.data.error === 'object') {
+          setErrors(err.response.data.error);
+        } 
+        // If error is a string
+        else if (typeof err.response.data.error === 'string') {
+          setErrors({ general: err.response.data.error });
+        }
+      } else {
+        // Generic error handling
+        setErrors({ general: "An error occurred. Please try again." });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="mt-20 min-h-screen flex  justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="mt-20 min-h-screen flex justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="text-center text-3xl font-extrabold">
-            <span className="text-orange-500">FORGOT</span>
+            <span className="text-primary">FORGOT</span>
             <span className="text-gray-800"> PASSWORD</span>
           </h2>
         </div>
 
-        {errors.general && (
+        {errors?.general && (
           <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
-            {errors.general}
+            {errors?.general}
           </div>
         )}
 
@@ -89,37 +122,38 @@ const ForgotPassword = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Enter email"
             />
           </div>
-          {errors.email && (
-              <p className="mt-1 text-xs text-red-500">{errors.email}</p>
-            )}
-          {/* Captcha Section */}
-          <div className="space-y-2">
+          {errors?.email && (
+            <p className="mt-1 text-xs text-red-500">{errors?.email}</p>
+          )}
+          
+          {/* Captcha Section - Uncomment if you want to use captcha */}
+          {/* <div className="space-y-2">
             <div className="border border-gray-300 rounded-md p-2">
-              {/* Add your captcha image component here */}
               <Captcha onChange={handleCaptchaChange} />
             </div>
           </div>
-          {errors.email && (
-              <p className="mt-1 text-xs text-red-500">{errors.captcha}</p>
-            )}
+          {errors?.captcha && (
+            <p className="mt-1 text-xs text-red-500">{errors?.captcha}</p>
+          )} */}
+          
           {/* Submit Button */}
           <div className="space-y-3">
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-primary text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? "Processing..." : "Get Password"}
+              {loading ? "Processing..." : "Reset Password"}
             </button>
 
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+              className="w-full bg-primary text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
             >
               Back to Login
             </button>

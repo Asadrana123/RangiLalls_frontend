@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import PropertyUpload from '../Components/Admin/PropertyUpload';
 import RegistrationManagement from '../Components/Admin/RegistrationManagement';
-import { FileSpreadsheet, Users, Home } from 'lucide-react';
+import AuctionList from '../Components/Admin/AuctionList';
+import { FileSpreadsheet, Users, Home, Calendar } from 'lucide-react';
 import api from '../Utils/axios';
 import { useEffect } from 'react';
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Tab navigation component
   const TabNavigation = () => (
-    <div className="flex border-b mb-6">
+    <div className="flex border-b mb-6 overflow-x-auto">
       <TabButton
         icon={<Home />}
         label="Dashboard"
@@ -27,6 +29,12 @@ const AdminDashboard = () => {
         label="Registration Management"
         isActive={activeTab === 'registrations'}
         onClick={() => setActiveTab('registrations')}
+      />
+      <TabButton
+        icon={<Calendar />}
+        label="Auction List"
+        isActive={activeTab === 'auctions'}
+        onClick={() => setActiveTab('auctions')}
       />
     </div>
   );
@@ -55,6 +63,8 @@ const AdminDashboard = () => {
         return <PropertyUpload />;
       case 'registrations':
         return <RegistrationManagement />;
+      case 'auctions':
+        return <AuctionList />;
       default:
         return <PropertyUpload />;
     }

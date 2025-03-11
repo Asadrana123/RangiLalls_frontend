@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import {setSuccess,setError,setLoading} from "../redux/Slices/authSlice";
+import {setSuccess,setError} from "../redux/Slices/authSlice";
 import StatusMessage from '../Components/Registration/StatusMessage';
 import Input from '../Components/Registration/Input';
 import Select from '../Components/Registration/Select';
@@ -267,12 +267,10 @@ const Registration = () => {
       setSubmitMessage('Please fix the errors in the form');
       return;
     }
-    setIsLoading(true);
     setSubmitStatus(null);
     setSubmitMessage('');
-    dispatch(setLoading(true));
+    setIsLoading(true);
       try {
-        console.log("hi");
         const response = await api.post('/auth/register', formData);
         console.log(response.data);
         setSubmitStatus('success');
@@ -284,7 +282,7 @@ const Registration = () => {
         setSubmitMessage(error.response?.data?.error?error.response?.data?.error:"Registration failed");
         console.log(error);
       }finally{
-          setIsLoading(false);
+         setIsLoading(false);
       }
   };
 

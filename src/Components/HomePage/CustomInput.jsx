@@ -49,37 +49,41 @@ const ModernFilterSection = ({ onSearch }) => {
     bank: ''
   });
 
-  const propertyTypes = [
-    { value: 'residential', label: 'Residential Property' },
-    { value: 'commercial', label: 'Commercial Space' },
-    { value: 'industrial', label: 'Industrial Property' },
-    { value: 'land', label: 'Land/Plot' }
-  ];
+  // In CustomInput.jsx, update the ModernFilterSection component
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear().toString().substring(2)}`;
+  };
+// Update the property types to match your actual data
+const propertyTypes = [
+  { value: 'RESIDENTIAL HOUSE', label: 'Residential House' },
+  { value: 'COMMERCIAL', label: 'Commercial Space' },
+  { value: 'INDUSTRIAL', label: 'Industrial Property' },
+  { value: 'LAND', label: 'Land/Plot' }
+];
 
-  const cities = [
-    { value: 'mumbai', label: 'Mumbai' },
-    { value: 'delhi', label: 'Delhi' },
-    { value: 'bangalore', label: 'Bangalore' },
-    { value: 'hyderabad', label: 'Hyderabad' }
-  ];
-
+// Update cities based on your data
+const cities = [
+  { value: 'LUDHIANA', label: 'Ludhiana' },
+  { value: 'DELHI', label: 'Delhi' },
+  { value: 'MUMBAI', label: 'Mumbai' },
+  { value: 'BANGALORE', label: 'Bangalore' }
+];
   const banks = [
-    { value: 'sbi', label: 'State Bank of India' },
-    { value: 'hdfc', label: 'HDFC Bank' },
-    { value: 'icici', label: 'ICICI Bank' },
-    { value: 'axis', label: 'Axis Bank' }
+    { value: 'Cholamandalam Investment and Finance Company Limited (CIFCL)', label: 'Cholamandalam Investment and Finance Company Limited (CIFCL)' }
   ];
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-      <div className="flex items-center justify-between mb-8">
+      {/* <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-semibold text-gray-800">
           Property Auctions
           <span className="ml-2 text-sm text-primary bg-purple-50 px-3 py-1 rounded-full">
             215 Active
           </span>
         </h2>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <CustomSelect

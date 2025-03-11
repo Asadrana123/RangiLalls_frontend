@@ -44,10 +44,7 @@ const FilterSection = ({ onSearch }) => {
   ];
 
   const banks = [
-    { value: 'chola', label: 'Cholamandalam' },
-    { value: 'hdfc', label: 'HDFC Bank' },
-    { value: 'sbi', label: 'State Bank of India' },
-    { value: 'icici', label: 'ICICI Bank' }
+    { value: 'Cholamandalam Investment and Finance Company Limited (CIFCL)', label: 'Cholamandalam Investment and Finance Company Limited (CIFCL)' }
   ];
 
   const handleChange = (field, value) => {
