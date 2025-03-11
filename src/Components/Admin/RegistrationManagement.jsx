@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
 import api from '../../Utils/axios';
-
+import DocumentViewer from './DocumentViewer';
 const RegistrationManagement = () => {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,91 +69,195 @@ const RegistrationManagement = () => {
     );
   };
 
-  const RegistrationDetailsModal = ({ registration, onClose }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-start">
-            <h3 className="text-xl font-semibold">Registration Details</h3>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-              &times;
-            </button>
-          </div>
-          
-          <div className="mt-4 space-y-4">
-            {/* User Section */}
-            <div className="border-b pb-4">
-              <h4 className="text-sm font-medium text-gray-500 mb-2">User Information</h4>
-              <p><span className="font-medium">Name:</span> {registration.firstName} {registration.lastName}</p>
-              <p><span className="font-medium">Organization:</span> {registration.organizationName}</p>
-              <p><span className="font-medium">Phone:</span> {registration.mobile}</p>
-            </div>
-            
-            {/* Auction Section */}
-            <div className="border-b pb-4">
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Auction Details</h4>
-              <p><span className="font-medium">Auction ID:</span> {registration.auctionId}</p>
-              <p><span className="font-medium">Date:</span> {new Date(registration.auctionDate).toLocaleDateString()}</p>
-              <p><span className="font-medium">Offer Value:</span> ₹{registration.offerValue?.toLocaleString()}</p>
-              <p><span className="font-medium">EMD Amount:</span> ₹{registration.emdAmount?.toLocaleString()}</p>
-            </div>
-            
-            {/* Payment Section */}
-            <div className="border-b pb-4">
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Payment Information</h4>
-              <p><span className="font-medium">Payment Mode:</span> {registration.paymentMode}</p>
-              {registration.paymentMode === 'Neft - Rtgs' && (
-                <p><span className="font-medium">UTR No:</span> {registration.utrNo}</p>
-              )}
-              <p><span className="font-medium">Bank:</span> {registration.bankName}</p>
-              <p><span className="font-medium">Account No:</span> {registration.accountNo}</p>
-            </div>
-            
-            {/* Status Section */}
-            <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Status</h4>
-              <div className="flex items-center gap-2 mb-4">
-                <StatusBadge status={registration.status} />
-                {registration.confirmationCode && (
-                  <span className="text-sm text-gray-600">Code: {registration.confirmationCode}</span>
-                )}
+  const RegistrationDetailsModal = ({ registration, onClose }) => {
+      const [viewingDocument, setViewingDocument] = useState(null);
+      
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start">
+                <h3 className="text-xl font-semibold">Registration Details</h3>
+                <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+                  &times;
+                </button>
               </div>
               
-              <div className="flex gap-2 justify-end">
-                {registration.status !== 'approved' && (
-                  <button
-                    onClick={() => updateStatus(registration._id, 'approved')}
-                    disabled={statusUpdateLoading}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                  >
-                    Approve
-                  </button>
-                )}
-                {registration.status !== 'rejected' && (
-                  <button
-                    onClick={() => updateStatus(registration._id, 'rejected')}
-                    disabled={statusUpdateLoading}
-                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    Reject
-                  </button>
-                )}
-                {registration.status !== 'pending' && (
-                  <button
-                    onClick={() => updateStatus(registration._id, 'pending')}
-                    disabled={statusUpdateLoading}
-                    className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                  >
-                    Set Pending
-                  </button>
-                )}
+              <div className="mt-4 space-y-4">
+                {/* User Section */}
+                <div className="border-b pb-4">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">User Information</h4>
+                  <p><span className="font-medium">Name:</span> {registration.firstName} {registration.lastName}</p>
+                  <p><span className="font-medium">Organization:</span> {registration.organizationName}</p>
+                  <p><span className="font-medium">Phone:</span> {registration.mobile}</p>
+                </div>
+                
+                {/* Auction Section */}
+                <div className="border-b pb-4">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Auction Details</h4>
+                  <p><span className="font-medium">Auction ID:</span> {registration.auctionId}</p>
+                  <p><span className="font-medium">Date:</span> {new Date(registration.auctionDate).toLocaleDateString()}</p>
+                  <p><span className="font-medium">Offer Value:</span> ₹{registration.offerValue?.toLocaleString()}</p>
+                  <p><span className="font-medium">EMD Amount:</span> ₹{registration.emdAmount?.toLocaleString()}</p>
+                </div>
+                
+                {/* Payment Section */}
+                <div className="border-b pb-4">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Payment Information</h4>
+                  <p><span className="font-medium">Payment Mode:</span> {registration.paymentMode}</p>
+                  {registration.paymentMode === 'Neft - Rtgs' && (
+                    <p><span className="font-medium">UTR No:</span> {registration.utrNo}</p>
+                  )}
+                  <p><span className="font-medium">Bank:</span> {registration.bankName}</p>
+                  <p><span className="font-medium">Account No:</span> {registration.accountNo}</p>
+                </div>
+                
+                {/* Document Section - New */}
+                <div className="border-b pb-4">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Documents</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                    {registration.pancardFile && (
+                      <div className="border rounded-md p-2">
+                        <p className="text-sm font-medium mb-2">PAN Card</p>
+                        <div className="flex flex-col items-center">
+                          <div className="h-32 w-full bg-gray-100 mb-2 flex items-center justify-center overflow-hidden">
+                            <img 
+                              src={registration.pancardFile} 
+                              alt="PAN Card" 
+                              className="h-full object-cover cursor-pointer"
+                              onClick={() => setViewingDocument({
+                                url: registration.pancardFile,
+                                title: 'PAN Card'
+                              })}
+                            />
+                          </div>
+                          <button
+                            onClick={() => setViewingDocument({
+                              url: registration.pancardFile,
+                              title: 'PAN Card'
+                            })}
+                            className="text-primary text-sm hover:underline"
+                          >
+                            View Full Image
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {registration.addressProof && (
+                      <div className="border rounded-md p-2">
+                        <p className="text-sm font-medium mb-2">Address Proof</p>
+                        <div className="flex flex-col items-center">
+                          <div className="h-32 w-full bg-gray-100 mb-2 flex items-center justify-center overflow-hidden">
+                            <img 
+                              src={registration.addressProof} 
+                              alt="Address Proof" 
+                              className="h-full object-cover cursor-pointer"
+                              onClick={() => setViewingDocument({
+                                url: registration.addressProof,
+                                title: 'Address Proof'
+                              })}
+                            />
+                          </div>
+                          <button
+                            onClick={() => setViewingDocument({
+                              url: registration.addressProof,
+                              title: 'Address Proof'
+                            })}
+                            className="text-primary text-sm hover:underline"
+                          >
+                            View Full Image
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {registration.paymentReceipt && (
+                      <div className="border rounded-md p-2">
+                        <p className="text-sm font-medium mb-2">Payment Receipt</p>
+                        <div className="flex flex-col items-center">
+                          <div className="h-32 w-full bg-gray-100 mb-2 flex items-center justify-center overflow-hidden">
+                            <img 
+                              src={registration.paymentReceipt} 
+                              alt="Payment Receipt" 
+                              className="h-full object-cover cursor-pointer"
+                              onClick={() => setViewingDocument({
+                                url: registration.paymentReceipt,
+                                title: 'Payment Receipt'
+                              })}
+                            />
+                          </div>
+                          <button
+                            onClick={() => setViewingDocument({
+                              url: registration.paymentReceipt,
+                              title: 'Payment Receipt'
+                            })}
+                            className="text-primary text-sm hover:underline"
+                          >
+                            View Full Image
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Status Section */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Status</h4>
+                  <div className="flex items-center gap-2 mb-4">
+                    <StatusBadge status={registration.status} />
+                    {registration.confirmationCode && (
+                      <span className="text-sm text-gray-600">Code: {registration.confirmationCode}</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-2 justify-end">
+                    {registration.status !== 'approved' && (
+                      <button
+                        onClick={() => updateStatus(registration._id, 'approved')}
+                        disabled={statusUpdateLoading}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                      >
+                        Approve
+                      </button>
+                    )}
+                    {registration.status !== 'rejected' && (
+                      <button
+                        onClick={() => updateStatus(registration._id, 'rejected')}
+                        disabled={statusUpdateLoading}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        Reject
+                      </button>
+                    )}
+                    {registration.status !== 'pending' && (
+                      <button
+                        onClick={() => updateStatus(registration._id, 'pending')}
+                        disabled={statusUpdateLoading}
+                        className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                      >
+                        Set Pending
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          
+          {/* Document Viewer Modal */}
+          {viewingDocument && (
+            <DocumentViewer 
+              url={viewingDocument.url} 
+              title={viewingDocument.title}
+              onClose={() => setViewingDocument(null)}
+            />
+          )}
         </div>
-      </div>
-    </div>
-  );
+      );
+    };
+  
   
   if (loading) {
     return (
