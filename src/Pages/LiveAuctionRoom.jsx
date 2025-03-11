@@ -86,7 +86,7 @@ const LiveAuctionRoom = () => {
     });
 
     newSocket.on("auction-status", (status) => {
-      setCurrentBid(status.currentBid || prop["Reserve Price (Rs.)"]);
+      setCurrentBid(status.currentBid || prop["Reserve Price (Rs"][')']);
       setCurrentBidder(status.currentBidder);
       setParticipants(status.participants);
       setBidHistory(status.recentBids || []);
@@ -169,7 +169,8 @@ const LiveAuctionRoom = () => {
           setHasAccess(true);
           currentSocket = initializeSocket(prop);
           setSocket(currentSocket);
-          setCurrentBid(prop["Reserve Price (Rs.)"]);
+          console.log(prop);
+          setCurrentBid(prop["Reserve Price (Rs"][')']);
         }
       } catch (error) {
         console.error("Access check error:", error);
