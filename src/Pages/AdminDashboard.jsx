@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import PropertyUpload from '../Components/Admin/PropertyUpload';
 import RegistrationManagement from '../Components/Admin/RegistrationManagement';
 import AuctionList from '../Components/Admin/AuctionList';
-import { FileSpreadsheet, Users, Home, Calendar } from 'lucide-react';
+import PropertyAddForm from '../Components/Admin/PropertyAddForm';
+import { FileSpreadsheet, Users, Home, Calendar,PlusCircle } from 'lucide-react';
 import api from '../Utils/axios';
 import { useEffect } from 'react';
 
@@ -25,11 +26,17 @@ const AdminDashboard = () => {
         onClick={() => setActiveTab('properties')}
       />
       <TabButton
+        icon={<PlusCircle />}
+        label="Add Property"
+        isActive={activeTab === 'add-property'}
+        onClick={() => setActiveTab('add-property')}
+      />
+      {/* <TabButton
         icon={<Users />}
         label="Registration Management"
         isActive={activeTab === 'registrations'}
         onClick={() => setActiveTab('registrations')}
-      />
+      /> */}
       <TabButton
         icon={<Calendar />}
         label="Auction List"
@@ -38,6 +45,7 @@ const AdminDashboard = () => {
       />
     </div>
   );
+  
 
   // Tab button component
   const TabButton = ({ icon, label, isActive, onClick }) => (
@@ -61,15 +69,14 @@ const AdminDashboard = () => {
         return <AdminOverview />;
       case 'properties':
         return <PropertyUpload />;
-      case 'registrations':
-        return <RegistrationManagement />;
+      case 'add-property':
+        return <PropertyAddForm />;
       case 'auctions':
         return <AuctionList />;
       default:
-        return <PropertyUpload />;
+        return <AdminOverview />;
     }
   };
-
   // Simple placeholder for dashboard overview
  // Inside your AdminDashboard.jsx
 const AdminOverview = () => {
