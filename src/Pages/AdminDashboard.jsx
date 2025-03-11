@@ -31,12 +31,12 @@ const AdminDashboard = () => {
         isActive={activeTab === 'add-property'}
         onClick={() => setActiveTab('add-property')}
       />
-      {/* <TabButton
+      <TabButton
         icon={<Users />}
         label="Registration Management"
         isActive={activeTab === 'registrations'}
         onClick={() => setActiveTab('registrations')}
-      /> */}
+      />
       <TabButton
         icon={<Calendar />}
         label="Auction List"
@@ -73,6 +73,8 @@ const AdminDashboard = () => {
         return <PropertyAddForm />;
       case 'auctions':
         return <AuctionList />;
+      case 'registrations':
+        return <RegistrationManagement />;
       default:
         return <AdminOverview />;
     }
