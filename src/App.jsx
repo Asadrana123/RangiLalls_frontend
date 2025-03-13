@@ -23,17 +23,23 @@ import AdminDashboard from "./Pages/AdminDashboard";
 import { useSelector } from "react-redux";
 import { Loader } from "lucide-react";
 import UnauthorizedPage from "./Pages/UnAuthorizedPage";
+// Import new User Dashboard components
+import UserDashboard from "./Pages/UserDashboard";
+import ProfileSettings from "./Pages/ProfileSettings";
+import InterestedProperties from "./Pages/InterestedProperties";
+import BiddingHistory from "./Pages/BiddingHistory";
+
 function App() {
   const dispatch = useDispatch();
-  const  propertyLoading  = useSelector((state) => state.property.loading);
-  const  userLoading  = useSelector((state) => state.auth.loading);
+  const propertyLoading = useSelector((state) => state.property.loading);
+  const userLoading = useSelector((state) => state.auth.loading);
   useEffect(() => {
     dispatch(checkAuthStatus());
   }, [dispatch]);
   useEffect(() => {
     dispatch(fetchProperties());
   }, [dispatch]);
-  if (propertyLoading||userLoading) {
+  if (propertyLoading || userLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Loader className="animate-spin h-8 w-8 text-primary" />
@@ -54,27 +60,22 @@ function App() {
             <Route path="/property/:id" element={<AuctionDetails />} />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/verify-email/:token" element={<VerifyEmail />} />
-            <Route path="/unauthorized" element={<UnauthorizedPage/>}/>
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route element={<PrivateAdminRoute />}>
-              <Route 
-                path="/admin"
-                element={<AdminDashboard/>}
-              />
+              <Route path="/admin" element={<AdminDashboard />} />
             </Route>
             <Route element={<PrivateRoutes />}>
-              <Route
-                path="/property/:id/tender-payment"
-                element={<TenderPayment />}
-              />
-              <Route
-                path="/property/:id/auction-registration"
-                element={<AuctionRegistration />}
-              />
-              <Route
-                path="/property/:id/live-auction"
-                element={<LiveAuctionRoom />}
-              />
+              <Route path="/property/:id/tender-payment" element={<TenderPayment />} />
+              <Route path="/property/:id/auction-registration" element={<AuctionRegistration />} />
+              <Route path="/property/:id/live-auction" element={<LiveAuctionRoom />} />
+              {/* New User Dashboard Routes */}
+              <Route path="/dashboard" element={<UserDashboard />}>
+                <Route index element={<ProfileSettings />} />
+                <Route path="profile" element={<ProfileSettings />} />
+                <Route path="interested-properties" element={<InterestedProperties />} />
+                <Route path="bidding-history" element={<BiddingHistory />} />
+              </Route>
             </Route>
           </Routes>
         </main>

@@ -32,7 +32,7 @@ const LiveAuctionRoom = ({ property }) => {
 
   useEffect(() => {
     // Initialize socket connection
-    const newSocket = io("http://localhost:5000/api", {
+    const newSocket = io(`${process.env.VITE_BACKEND_URL}/api`, {
       auth: { token }
     });
 

@@ -1,36 +1,81 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {  
   Clock, 
   MapPin, 
   Building2, 
   Landmark, 
-  ArrowRight, 
   Timer,
   IndianRupee,
-  Gavel
+  Gavel,
+  Heart
 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-import { isRegistrationOpen,isAuctionLive,getTimeRemaining } from "../../Utils/helper";
+import { isRegistrationOpen, isAuctionLive, getTimeRemaining } from "../../Utils/helper";
+import { useSelector } from "react-redux";
+import api from "../../Utils/axios"
+
 const AuctionCard = ({ auction }) => {
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const [isInterested, setIsInterested] = useState(false);
+  const [loadingInterest, setLoadingInterest] = useState(false);
+  
+  useEffect(() => {
+    // Check if property is in user's interested list
+    if (!user || !user.interestedProperties) return;
+    
+    const isInInterested = user.interestedProperties.includes(auction._id);
+    setIsInterested(isInInterested);
+  }, [auction, user]);
+
+  const toggleInterested = async (e) => {
+    e.stopPropagation(); // Prevent card click
+    
+    if (!user) {
+      navigate('/login', { state: { from: `/property/${auction._id}` } });
+      return;
+    }
+    
+    setLoadingInterest(true);
+    
+    try {
+      if (isInterested) {
+        // Remove from interested
+        await api.delete(`/auth/interested-properties/${auction._id}`);
+        setIsInterested(false);
+      } else {
+        // Add to interested
+        await api.post(`/auth/interested-properties/${auction._id}`);
+        setIsInterested(true);
+      }
+    } catch (error) {
+      console.error('Error updating interested status:', error);
+    } finally {
+      setLoadingInterest(false);
+    }
+  };
+
   if (!auction) {
     return <p className="text-red-500">Error: Auction data is missing.</p>;
   }
-  const customerName = auction["CUSTOMER NAME"] 
-    ? auction["CUSTOMER NAME"].split("(Property")[0].trim() 
+  
+  // Using the new property model structure
+  const customerName = auction.customerName 
+    ? auction.customerName.split("(Property")[0].trim() 
     : "";
 
   // Calculate days left until EMD submission deadline
-  const isLive = isAuctionLive(auction["Auction Date"]);
-  const canRegister = isRegistrationOpen(auction["EMD Submission"], auction["Auction Date"]);
-  const daysLeft = getTimeRemaining(auction["EMD Submission"]);
+  const isLive = isAuctionLive(auction.auctionDate);
+  const canRegister = isRegistrationOpen(auction.emdSubmission, auction.auctionDate);
+  const daysLeft = getTimeRemaining(auction.emdSubmission);
   const progressPercentage = Math.min(100, Math.max(0, (daysLeft / 30) * 100));
+  
   const renderActionButton = () => {
     if (isLive) {
       return (
         <button 
           className="flex-1 px-6 py-4 text-white bg-primary hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 font-medium border border-transparent hover:border-primary"
-          onClick={() => window.location.href=`/property/${auction._id}/live-auction`}
+          onClick={() => navigate(`/property/${auction._id}/live-auction`)}
         >
           <Gavel className="w-4 h-4" />
           Bid Now
@@ -42,7 +87,7 @@ const AuctionCard = ({ auction }) => {
       return (
         <button 
           className="flex-1 px-6 py-4 text-white bg-primary hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 font-medium border border-transparent hover:border-green-600"
-          onClick={() => window.location.href=`/property/${auction._id}/tender-payment`}
+          onClick={() => navigate(`/property/${auction._id}/tender-payment`)}
         >
           Register Now
         </button>
@@ -58,6 +103,7 @@ const AuctionCard = ({ auction }) => {
       </button>
     );
   };
+  
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
       <div className="p-6">
@@ -71,19 +117,34 @@ const AuctionCard = ({ auction }) => {
             
             <div>
               <h3 className="text-xl font-semibold text-gray-800 mb-1">
-                {auction["Property Type"] || "Untitled Property"}
+                {auction.propertyType || "Untitled Property"}
               </h3>
               <div className="flex items-center gap-2 text-gray-500">
                 <MapPin className="w-4 h-4" />
-                <span className="text-sm">{auction["Property Location (City)"]}, {auction["State"] || ""}</span>
+                <span className="text-sm">{auction.propertyLocation}, {auction.state || ""}</span>
               </div>
             </div>
           </div>
 
-          {/* Asset Type Badge */}
-          <span className="px-3 py-1 bg-primary text-white rounded-full text-sm font-medium">
-            {auction["Types of  Possession"] || "N/A"}
-          </span>
+          {/* Asset Type Badge and Interest Button */}
+          <div className="flex items-start gap-2">
+            <span className="px-3 py-1 bg-primary text-white rounded-full text-sm font-medium">
+              {auction.possessionType || "N/A"}
+            </span>
+            
+            <span 
+              onClick={toggleInterested}
+              className={`p-0 pt-1 cursor-pointer ${
+                isInterested 
+                  ? 'bg-red-50 text-red-500' 
+                  : 'bg-gray-50 text-gray-400'
+              }`}
+              aria-label={isInterested ? 'Remove from interested' : 'Add to interested'}
+              title={isInterested ? 'Remove from interested' : 'Add to interested'}
+            >
+              <Heart className={`w-5 h-5 ${isInterested ? 'fill-current' : ''}`} />
+            </span>
+          </div>
         </div>
 
         {/* Price and Details Grid */}
@@ -95,7 +156,7 @@ const AuctionCard = ({ auction }) => {
               <div className="flex items-center gap-1">
                 <IndianRupee className="w-5 h-5 text-gray-700" />
                 <span className="text-2xl font-bold text-gray-800">
-                {`${auction["Reserve Price (Rs)"]?.toLocaleString()}` || "N/A"}
+                {`${auction.reservePrice?.toLocaleString()}` || "N/A"}
                 </span>
               </div>
             </div>
@@ -104,7 +165,7 @@ const AuctionCard = ({ auction }) => {
               <div className="flex items-center gap-3">
                 <Landmark className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {auction["Vendor"] || "Vendor N/A"}
+                  {auction.vendor || "Vendor N/A"}
                 </span>
               </div>
               <div className="text-sm text-gray-600">
@@ -118,7 +179,7 @@ const AuctionCard = ({ auction }) => {
             <div>
               <p className="text-sm text-gray-500 mb-1">Auction Date</p>
               <p className="text-lg font-semibold text-gray-800">
-                {auction["Auction Date"] || "N/A"}
+                {auction.auctionDate ? new Date(auction.auctionDate).toLocaleDateString() : "N/A"}
               </p>
             </div>
             
@@ -127,13 +188,13 @@ const AuctionCard = ({ auction }) => {
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  Loan: {auction["Loan Account No"] || "N/A"}
+                  Loan: {auction.loanAccountNo || "N/A"}
                 </span>
               </div>
             </div>
 
             <div className="text-sm text-gray-600">
-              <strong>Zone:</strong> {auction["ZONE"] || "N/A"} | <strong>Region:</strong> {auction["REGION"] || "N/A"}
+              <strong>Zone:</strong> {auction.zone || "N/A"} | <strong>Region:</strong> {auction.region || "N/A"}
             </div>
           </div>
         </div>
@@ -161,7 +222,7 @@ const AuctionCard = ({ auction }) => {
 
         {/* Participation Info */}
         <div className="text-sm text-gray-600">
-          EMD Submission deadline: {auction["EMD Submission"] || "N/A"}
+          EMD Submission deadline: {auction.emdSubmission ? new Date(auction.emdSubmission).toLocaleDateString() : "N/A"}
         </div>
       </div>
 
@@ -169,7 +230,7 @@ const AuctionCard = ({ auction }) => {
       <div className="flex gap-2">
         <button 
           className="flex-1 px-6 py-4 text-primary-dark transition-colors border border-primary hover:border-primary"
-          onClick={() => window.location.href=`/property/${auction._id}`}
+          onClick={() => navigate(`/property/${auction._id}`)}
         >
           View Property Details
         </button>
