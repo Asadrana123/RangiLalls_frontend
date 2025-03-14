@@ -8,20 +8,20 @@ const PropertyAddForm = () => {
   const [success, setSuccess] = useState('');
   
   const initialFormData = {
-    'Loan Account No': '',
-    'CIF ID': '',
-    'CUSTOMER NAME': '',
-    'ZONE': '',
-    'REGION': '',
-    'Property Location (City)': '',
-    'State': '',
-    'Property Type': '',
-    'Types of Possession': '',
-    'Reserve Price (Rs)': '',
-    'EMD Submission': '',
-    'Auction Date': '',
-    'Vendor': '',
-    'Property Schedule': ''
+    loanAccountNo: '',
+    cifId: '',
+    customerName: '',
+    zone: '',
+    region: '',
+    propertyLocation: '',
+    state: '',
+    propertyType: '',
+    possessionType: '',
+    reservePrice: '',
+    emdSubmission: '',
+    auctionDate: '',
+    vendor: '',
+    propertySchedule: ''
   };
   
   const [formData, setFormData] = useState(initialFormData);
@@ -41,18 +41,45 @@ const PropertyAddForm = () => {
     setSuccess('');
 
     try {
-      // Generate a unique auction ID
+      // Prepare property data
       const propertyData = {
         ...formData,
       };
 
       // Convert numeric fields
-      if (propertyData['CIF ID']) {
-        propertyData['CIF ID'] = Number(propertyData['CIF ID']);
+      if (propertyData.cifId) {
+        propertyData.cifId = Number(propertyData.cifId);
       }
       
-      if (propertyData['Reserve Price (Rs)']) {
-        propertyData['Reserve Price (Rs)'] = Number(propertyData['Reserve Price (Rs)']);
+      if (propertyData.reservePrice) {
+        propertyData.reservePrice = Number(propertyData.reservePrice);
+      }
+
+      // Convert date strings to Date objects (ISO format for APIs)
+      if (propertyData.emdSubmission) {
+        const [day, month, year] = propertyData.emdSubmission.split('-');
+        const monthMap = {
+          'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+          'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+        };
+        propertyData.emdSubmission = new Date(
+          2000 + parseInt(year), 
+          monthMap[month], 
+          parseInt(day)
+        ).toISOString();
+      }
+      
+      if (propertyData.auctionDate) {
+        const [day, month, year] = propertyData.auctionDate.split('-');
+        const monthMap = {
+          'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+          'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+        };
+        propertyData.auctionDate = new Date(
+          2000 + parseInt(year), 
+          monthMap[month], 
+          parseInt(day)
+        ).toISOString();
       }
 
       const response = await api.post('/admin/add-property', propertyData);
@@ -105,8 +132,8 @@ const PropertyAddForm = () => {
               </label>
               <input
                 type="text"
-                name="Loan Account No"
-                value={formData['Loan Account No']}
+                name="loanAccountNo"
+                value={formData.loanAccountNo}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -119,8 +146,8 @@ const PropertyAddForm = () => {
               </label>
               <input
                 type="number"
-                name="CIF ID"
-                value={formData['CIF ID']}
+                name="cifId"
+                value={formData.cifId}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -133,8 +160,8 @@ const PropertyAddForm = () => {
               </label>
               <input
                 type="text"
-                name="CUSTOMER NAME"
-                value={formData['CUSTOMER NAME']}
+                name="customerName"
+                value={formData.customerName}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -147,8 +174,8 @@ const PropertyAddForm = () => {
                 Zone <span className="text-red-500">*</span>
               </label>
               <select
-                name="ZONE"
-                value={formData['ZONE']}
+                name="zone"
+                value={formData.zone}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -166,8 +193,8 @@ const PropertyAddForm = () => {
               </label>
               <input
                 type="text"
-                name="REGION"
-                value={formData['REGION']}
+                name="region"
+                value={formData.region}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -180,8 +207,8 @@ const PropertyAddForm = () => {
               </label>
               <input
                 type="text"
-                name="Property Location (City)"
-                value={formData['Property Location (City)']}
+                name="propertyLocation"
+                value={formData.propertyLocation}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -194,8 +221,8 @@ const PropertyAddForm = () => {
               </label>
               <input
                 type="text"
-                name="State"
-                value={formData['State']}
+                name="state"
+                value={formData.state}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -208,8 +235,8 @@ const PropertyAddForm = () => {
                 Property Type <span className="text-red-500">*</span>
               </label>
               <select
-                name="Property Type"
-                value={formData['Property Type']}
+                name="propertyType"
+                value={formData.propertyType}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -226,8 +253,8 @@ const PropertyAddForm = () => {
                 Type of Possession <span className="text-red-500">*</span>
               </label>
               <select
-                name="Types of Possession"
-                value={formData['Types of Possession']}
+                name="possessionType"
+                value={formData.possessionType}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -245,8 +272,8 @@ const PropertyAddForm = () => {
               </label>
               <input
                 type="number"
-                name="Reserve Price (Rs)"
-                value={formData['Reserve Price (Rs)']}
+                name="reservePrice"
+                value={formData.reservePrice}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -260,8 +287,8 @@ const PropertyAddForm = () => {
               </label>
               <input
                 type="text"
-                name="EMD Submission"
-                value={formData['EMD Submission']}
+                name="emdSubmission"
+                value={formData.emdSubmission}
                 onChange={handleChange}
                 placeholder="DD-MMM-YY (e.g., 06-Mar-25)"
                 required
@@ -276,8 +303,8 @@ const PropertyAddForm = () => {
               </label>
               <input
                 type="text"
-                name="Auction Date"
-                value={formData['Auction Date']}
+                name="auctionDate"
+                value={formData.auctionDate}
                 onChange={handleChange}
                 placeholder="DD-MMM-YY (e.g., 07-Mar-25)"
                 required
@@ -291,8 +318,8 @@ const PropertyAddForm = () => {
                 Vendor <span className="text-red-500">*</span>
               </label>
               <select
-                name="Vendor"
-                value={formData['Vendor']}
+                name="vendor"
+                value={formData.vendor}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -311,8 +338,8 @@ const PropertyAddForm = () => {
               Property Schedule/Description <span className="text-red-500">*</span>
             </label>
             <textarea
-              name="Property Schedule"
-              value={formData['Property Schedule']}
+              name="propertySchedule"
+              value={formData.propertySchedule}
               onChange={handleChange}
               required
               rows={4}

@@ -52,7 +52,6 @@ const InterestedProperties = () => {
   // Format date for display
   const formatDate = (dateValue) => {
     if (!dateValue) return "N/A";
-    if (typeof dateValue === 'string') return dateValue;
     return new Date(dateValue).toLocaleDateString();
   };
   const isAuctionUpcoming = (auctionDate) => {

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect  } from 'react';
 import { Search, Calendar, MapPin, Building2, BadgeDollarSign, Landmark } from 'lucide-react';
-
+import { useSelector } from 'react-redux';
 // Custom Select Input Component
 const CustomSelect = ({ label, value, onChange, options, icon: Icon }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +19,7 @@ const CustomSelect = ({ label, value, onChange, options, icon: Icon }) => {
       </div>
       
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {options.map((option) => (
             <div
               key={option.value}
@@ -40,6 +40,7 @@ const CustomSelect = ({ label, value, onChange, options, icon: Icon }) => {
 
 // Modern Filter Section
 const ModernFilterSection = ({ onSearch }) => {
+  const { properties } = useSelector((state) => state.property);
   const [filters, setFilters] = useState({
     propertyType: '',
     price: '',
@@ -48,43 +49,56 @@ const ModernFilterSection = ({ onSearch }) => {
     city: '',
     bank: ''
   });
+  
+  // Dynamically generate city options from properties data
+  const [cityOptions, setCityOptions] = useState([]);
+  
+  useEffect(() => {
+    if (properties && properties.length > 0) {
+      // Extract unique cities from properties
+      const uniqueCities = new Set();
+      
+      properties.forEach(property => {
+        // Use propertyLocation field from your new model
+        if (property.propertyLocation) {
+          uniqueCities.add(property.propertyLocation);
+        }
+      });
+      
+      // Convert Set to array of option objects
+      const cityOptionsList = Array.from(uniqueCities)
+        .sort() // Sort alphabetically
+        .map(city => ({
+          value: city,
+          label: city.charAt(0).toUpperCase() + city.slice(1).toLowerCase() // Capitalize first letter, rest lowercase
+        }));
+      
+      setCityOptions(cityOptionsList);
+    }
+  }, [properties]);
 
-  // In CustomInput.jsx, update the ModernFilterSection component
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear().toString().substring(2)}`;
   };
-// Update the property types to match your actual data
-const propertyTypes = [
-  { value: 'RESIDENTIAL HOUSE', label: 'Residential House' },
-  { value: 'COMMERCIAL', label: 'Commercial Space' },
-  { value: 'INDUSTRIAL', label: 'Industrial Property' },
-  { value: 'LAND', label: 'Land/Plot' }
-];
 
-// Update cities based on your data
-const cities = [
-  { value: 'LUDHIANA', label: 'Ludhiana' },
-  { value: 'DELHI', label: 'Delhi' },
-  { value: 'MUMBAI', label: 'Mumbai' },
-  { value: 'BANGALORE', label: 'Bangalore' }
-];
+  // Property types array remains the same...
+  const propertyTypes = [
+    { value: 'RESIDENTIAL', label: 'Residential House' },
+    { value: 'COMMERCIAL', label: 'Commercial Space' },
+    { value: 'INDUSTRIAL', label: 'Industrial Property' },
+    { value: 'LAND', label: 'Land/Plot' }
+  ];
+  
   const banks = [
     { value: 'Cholamandalam Investment and Finance Company Limited (CIFCL)', label: 'Cholamandalam Investment and Finance Company Limited (CIFCL)' }
   ];
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-      {/* <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-semibold text-gray-800">
-          Property Auctions
-          <span className="ml-2 text-sm text-primary bg-purple-50 px-3 py-1 rounded-full">
-            215 Active
-          </span>
-        </h2>
-      </div> */}
-
+      {/* Component UI remains the same */}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <CustomSelect
           label="Property Type"
@@ -112,10 +126,11 @@ const cities = [
           label="Location"
           value={filters.city}
           onChange={(value) => setFilters(prev => ({ ...prev, city: value }))}
-          options={cities}
+          options={cityOptions} // Now using the dynamic city options
           icon={MapPin}
         />
 
+        {/* Rest of the component remains the same */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">Auction Date From</label>
           <div className="relative">
@@ -177,4 +192,4 @@ const cities = [
   );
 };
 
-export {ModernFilterSection,CustomSelect}
+export { ModernFilterSection, CustomSelect };

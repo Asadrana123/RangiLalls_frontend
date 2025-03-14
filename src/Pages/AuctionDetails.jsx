@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import PropertyMap from "../Components/AuctionDetails/PropertyMap";
-import axios from "axios";
+import api from "../Utils/axios"
 import {
   Calendar,
   MapPin,
@@ -76,11 +76,11 @@ const PropertyDetails = () => {
     try {
       if (isInterested) {
         // Remove from interested
-        await axios.delete(`/api/users/interested-properties/${property._id}`);
+        await api.delete(`/auth/interested-properties/${property._id}`);
         setIsInterested(false);
       } else {
         // Add to interested
-        await axios.post(`/api/users/interested-properties/${property._id}`);
+        await api.post(`/auth/interested-properties/${property._id}`);
         setIsInterested(true);
       }
     } catch (error) {
@@ -122,7 +122,7 @@ const PropertyDetails = () => {
   // Format dates for display
   const formatDate = (dateValue) => {
     if (!dateValue) return "N/A";
-    if (typeof dateValue === 'string') return dateValue;
+    //if (typeof dateValue === 'string') return dateValue;
     return new Date(dateValue).toLocaleDateString();
   };
   

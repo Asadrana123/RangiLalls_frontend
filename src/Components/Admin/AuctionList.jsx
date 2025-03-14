@@ -12,6 +12,7 @@ import { Edit, Trash2, MoreVertical } from "lucide-react";
 import EditAuctionModal from "./EditAuction";
 import DeleteAuctionModal from "./DeleteAuction";
 import DocumentViewer from "./DocumentViewer";
+
 const AuctionList = () => {
   // Get auctions/properties from Redux state instead of making API call
   const { properties } = useSelector((state) => state.property);
@@ -23,12 +24,13 @@ const AuctionList = () => {
   const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
   const [viewingRegistration, setViewingRegistration] = useState(null);
-  const [showRegistrationDetailsModal, setShowRegistrationDetailsModal] =useState(false);
+  const [showRegistrationDetailsModal, setShowRegistrationDetailsModal] = useState(false);
   const [editingAuction, setEditingAuction] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [deletingAuction, setDeletingAuction] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState({});
+
   const handleEditAuction = (auction) => {
     setEditingAuction(auction);
     setShowEditModal(true);
@@ -43,20 +45,14 @@ const AuctionList = () => {
 
   const handleEditSuccess = (updatedData) => {
     setShowEditModal(false);
-
-    // You would update your Redux store here if needed
     alert("Auction updated successfully");
-
     // If you need to refresh the data, you can dispatch your Redux action here
     // dispatch(fetchProperties());
   };
 
   const handleDeleteSuccess = () => {
     setShowDeleteModal(false);
-
-    // You would update your Redux store here if needed
     alert("Auction deleted successfully");
-
     // If you need to refresh the data, you can dispatch your Redux action here
     // dispatch(fetchProperties());
   };
@@ -67,6 +63,7 @@ const AuctionList = () => {
       [auctionId]: !prev[auctionId],
     }));
   };
+
   const updateStatus = async (registrationId, status) => {
     try {
       setStatusUpdateLoading(true);
@@ -86,15 +83,16 @@ const AuctionList = () => {
     }
   };
 
-  // Add this function to open the details modal
+  // Function to open the details modal
   const handleViewDetails = (registration) => {
     setViewingRegistration(registration);
     setShowRegistrationDetailsModal(true);
   };
+
   const fetchRegistrationsForAuction = async (auctionId) => {
     try {
       setRegistrationsLoading(true);
-      // auctionId comes from auction["Auction ID"] field
+      // Now using _id as the identifier
       const response = await api.get(
         `/admin/auctions/${encodeURIComponent(auctionId)}/registrations`
       );
@@ -110,8 +108,15 @@ const AuctionList = () => {
   const handleViewRegistrations = (auction) => {
     setSelectedAuction(auction);
     setShowRegistrationsModal(true);
-    // Use the exact field name as stored in MongoDB - "Auction ID"
-    fetchRegistrationsForAuction(auction["Auction ID"]);
+    // Now using _id as the identifier
+    fetchRegistrationsForAuction(auction._id);
+  };
+
+  // Function to format date for display
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "N/A";
+    if (typeof dateValue === 'string') return dateValue;
+    return new Date(dateValue).toLocaleDateString();
   };
 
   // Status badge component for registration status
@@ -152,8 +157,8 @@ const AuctionList = () => {
                 Registrations for Auction
               </h3>
               <p className="text-gray-600 mt-1">
-                Auction ID: {auction["Auction ID"]} | {auction["CUSTOMER NAME"]}{" "}
-                | {auction["Property Location (City)"]}
+                Auction ID: {auction._id} | {auction.customerName}{" "}
+                | {auction.propertyLocation}
               </p>
             </div>
             <button
@@ -241,6 +246,7 @@ const AuctionList = () => {
       </div>
     </div>
   );
+
   const RegistrationDetailsModal = ({ registration, onClose }) => {
     const [viewingDocument, setViewingDocument] = useState(null);
     
@@ -284,7 +290,7 @@ const AuctionList = () => {
                 <p><span className="font-medium">Account No:</span> {registration.accountNo}</p>
               </div>
               
-              {/* Document Section - New */}
+              {/* Document Section */}
               <div className="border-b pb-4">
                 <h4 className="text-sm font-medium text-gray-500 mb-2">Documents</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
@@ -482,39 +488,39 @@ const AuctionList = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {properties.map((auction, index) => (
                 <tr
-                  key={auction["Auction ID"] || index}
+                  key={auction._id || index}
                   className="hover:bg-gray-50"
                 >
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="font-medium">
-                      {auction["CUSTOMER NAME"]}
+                      {auction.customerName}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {auction["CIF ID"]}
+                      {auction.cifId}
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div>{auction["Property Type"]}</div>
+                    <div>{auction.propertyType}</div>
                     <div
                       className="text-xs text-gray-500 truncate max-w-xs"
-                      title={auction["Property Schedule"]}
+                      title={auction.propertySchedule}
                     >
-                      {auction["Property Schedule"]}
+                      {auction.propertySchedule}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <div>{auction["Property Location (City)"]}</div>
+                    <div>{auction.propertyLocation}</div>
                     <div className="text-xs text-gray-500">
-                      {auction["State"]}
+                      {auction.state}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm">
                       <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                      {auction["Auction Date"]}
+                      {formatDate(auction.auctionDate)}
                     </div>
                     <div className="text-xs text-gray-500">
-                      EMD by: {auction["EMD Submission"]}
+                      EMD by: {formatDate(auction.emdSubmission)}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -529,14 +535,14 @@ const AuctionList = () => {
                       <div className="relative">
                         <button
                           onClick={() =>
-                            toggleActionMenu(auction["Auction ID"])
+                            toggleActionMenu(auction._id)
                           }
                           className="p-1 rounded-full hover:bg-gray-100"
                         >
                           <MoreVertical className="w-4 h-4 text-gray-500" />
                         </button>
 
-                        {actionMenuOpen[auction["Auction ID"]] && (
+                        {actionMenuOpen[auction._id] && (
                           <div className="absolute right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-10 w-36 border">
                             <button
                               onClick={() => handleEditAuction(auction)}

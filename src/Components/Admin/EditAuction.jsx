@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, AlertCircle, X, Loader } from 'lucide-react';
-import api from '../../Utils/axios';
+import axios from '../../Utils/axios';
 
 const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({});
@@ -9,21 +9,27 @@ const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
 
   // Fields that can be edited
   const editableFields = [
-    { key: 'CUSTOMER NAME', label: 'Customer Name', type: 'text' },
-    { key: 'Property Type', label: 'Property Type', type: 'text' },
-    { key: 'Property Location (City)', label: 'City', type: 'text' },
-    { key: 'State', label: 'State', type: 'text' },
-    { key: 'Property Schedule', label: 'Property Description', type: 'textarea' },
-    { key: 'Reserve Price (Rs)', label: 'Reserve Price (₹)', type: 'number' },
-    { key: 'Auction Date', label: 'Auction Date', type: 'text' },
-    { key: 'EMD Submission', label: 'EMD Submission Date', type: 'text' }
+    { key: 'customerName', label: 'Customer Name', type: 'text' },
+    { key: 'propertyType', label: 'Property Type', type: 'text' },
+    { key: 'propertyLocation', label: 'City', type: 'text' },
+    { key: 'state', label: 'State', type: 'text' },
+    { key: 'propertySchedule', label: 'Property Description', type: 'textarea' },
+    { key: 'reservePrice', label: 'Reserve Price (₹)', type: 'number' },
+    { key: 'auctionDate', label: 'Auction Date', type: 'date' },
+    { key: 'emdSubmission', label: 'EMD Submission Date', type: 'date' }
   ];
 
   useEffect(() => {
     if (auction) {
       const initialData = {};
       editableFields.forEach(field => {
-        initialData[field.key] = auction[field.key] || '';
+        if (field.type === 'date' && auction[field.key]) {
+          // Format dates for input field
+          const date = new Date(auction[field.key]);
+          initialData[field.key] = date.toISOString().split('T')[0];
+        } else {
+          initialData[field.key] = auction[field.key] || '';
+        }
       });
       setFormData(initialData);
     }
@@ -43,10 +49,27 @@ const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
     setError(null);
 
     try {
-      const response = await api.put(`/admin/auctions/${auction['Auction ID']}`, formData);
+      // Prepare the data - convert dates back to Date objects for MongoDB
+      const dataToSubmit = { ...formData };
+      
+      // Handle date fields
+      if (dataToSubmit.auctionDate) {
+        dataToSubmit.auctionDate = new Date(dataToSubmit.auctionDate);
+      }
+      
+      if (dataToSubmit.emdSubmission) {
+        dataToSubmit.emdSubmission = new Date(dataToSubmit.emdSubmission);
+      }
+      
+      // Convert number fields
+      if (dataToSubmit.reservePrice) {
+        dataToSubmit.reservePrice = Number(dataToSubmit.reservePrice);
+      }
+
+      const response = await axios.put(`/api/admin/auctions/${auction._id}`, dataToSubmit);
       
       if (response.data.success) {
-        onSuccess(formData);
+        onSuccess(dataToSubmit);
       } else {
         setError(response.data.error || 'Failed to update auction');
       }

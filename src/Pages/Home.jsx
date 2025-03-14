@@ -19,12 +19,12 @@ const Home = () => {
     // Filter the properties based on selected filters
     const filtered = properties.filter(property => {
       // Property Type filter
-      if (filters.propertyType && property["Property Type"] !== filters.propertyType) {
+      if (filters.propertyType && !property.propertyType.includes(filters.propertyType)) {
         return false;
       }
       
       // City filter
-      if (filters.city && property["Property Location (City)"] !== filters.city) {
+      if (filters.city && property.propertyLocation !== filters.city) {
         return false;
       }
       
@@ -35,13 +35,13 @@ const Home = () => {
       
       // Price filter - check if reserve price is less than or equal to the specified price
       console.log(filters.price);
-      if (filters.price && property["Reserve Price (Rs)"] <= parseFloat(filters.price)) {
+      if (filters.price && property.reservePrice <= parseFloat(filters.price)) {
         return false;
       }
       
       // Date range filter
       if (filters.dateFrom || filters.dateTo) {
-        const auctionDate = new Date(property["Auction Date"]);
+        const auctionDate = new Date(property.auctionDate);
         
         if (filters.dateFrom) {
           const fromDate = new Date(filters.dateFrom);
