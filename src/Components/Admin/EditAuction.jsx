@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, AlertCircle, X, Loader } from 'lucide-react';
-import axios from '../../Utils/axios';
+import api from '../../Utils/axios';
 
 const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({});
@@ -66,7 +66,7 @@ const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
         dataToSubmit.reservePrice = Number(dataToSubmit.reservePrice);
       }
 
-      const response = await axios.put(`/api/admin/auctions/${auction._id}`, dataToSubmit);
+      const response = await api.put(`/admin/auctions/${auction._id}`, dataToSubmit);
       
       if (response.data.success) {
         onSuccess(dataToSubmit);

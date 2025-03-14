@@ -220,9 +220,9 @@ const AuctionRegistrationForm = () => {
       }
     });
     console.log(selectedProperty);
-    formDataToSend.append('auctionId',selectedProperty['Auction ID']);
+    formDataToSend.append('auctionId',selectedProperty._id);
     formDataToSend.append('email',user.email);
-    formDataToSend.append('auctionDate',selectedProperty['Auction Date']);
+    formDataToSend.append('auctionDate',selectedProperty.auctionDate);
     // Add files
     if (formData.pancardFile) formDataToSend.append('pancardFile', formData.pancardFile);
     if (formData.addressProof) formDataToSend.append('addressProof', formData.addressProof);
@@ -251,7 +251,7 @@ const AuctionRegistrationForm = () => {
         <h1 className="text-primary text-3xl mb-4">Participate Registration for E-Auction</h1>
         <div className="flex items-center">
           <h2 className="text-gray-700 text-xl">AUCTION ID: </h2>
-          <span className="text-primary text-xl ml-2">{selectedProperty['Auction ID']}</span>
+          <span className="text-primary text-xl ml-2">{selectedProperty._id}</span>
         </div>
       </div>
 
@@ -462,7 +462,7 @@ const AuctionRegistrationForm = () => {
                 required
                 placeholder="Enter offer value"
               />
-              <p className="text-sm text-gray-500 mt-1">(Reserve Price : {selectedProperty["Reserve Price (Rs)"].toLocaleString()})</p>
+              <p className="text-sm text-gray-500 mt-1">(Reserve Price : {selectedProperty.reservePrice.toLocaleString()})</p>
             </div>
 
             <Select

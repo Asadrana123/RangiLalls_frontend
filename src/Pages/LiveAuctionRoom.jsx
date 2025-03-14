@@ -22,7 +22,6 @@ const LiveAuctionRoom = () => {
   const { id } = useParams();
   const { user } = useSelector((state) => state.auth);
   const { properties } = useSelector((state) => state.property);
-
   // Component state
   const [property, setProperty] = useState(null);
   const [hasAccess, setHasAccess] = useState(false);
@@ -56,14 +55,13 @@ const LiveAuctionRoom = () => {
 
     // Set auction hours (10 AM to 5 PM)
     const startTime = new Date(today);
-    startTime.setHours(10, 0, 0, 0);
+    startTime.setHours(2, 0, 0, 0);
 
     const endTime = new Date(today);
-    endTime.setHours(17, 0, 0, 0);
+    endTime.setHours(9, 0, 0, 0);
 
     if (today < startTime) {
       const temp = Math.floor((endTime - today) / 1000);
-      console.log(temp);
       return temp;
     }
 
@@ -82,11 +80,11 @@ const LiveAuctionRoom = () => {
 
     newSocket.on("connect", () => {
       console.log("Connected to auction server");
-      newSocket.emit("join-auction", prop["Auction ID"]);
+      newSocket.emit("join-auction", prop._id);
     });
 
     newSocket.on("auction-status", (status) => {
-      setCurrentBid(status.currentBid || prop["Reserve Price (Rs)"]);
+      setCurrentBid(status.currentBid || prop.reservePrice);
       setCurrentBidder(status.currentBidder);
       setParticipants(status.participants);
       setBidHistory(status.recentBids || []);
@@ -117,7 +115,7 @@ const LiveAuctionRoom = () => {
 
         setTimeout(() => {
           newSocket.emit('place-bid', {
-            auctionId: property["Auction ID"],
+            auctionId: property._id,
             bidAmount: update.currentBid + autoBidIncrementRef.current
           });
         }, 1000);
@@ -160,7 +158,7 @@ const LiveAuctionRoom = () => {
         setProperty(prop);
 
         const response = await api.get(
-          `/auction/check-access/${prop["Auction ID"]}`
+          `/auction/check-access/${prop._id}`
         );
         if (!response.data.success) {
           setError(response.data.error);
@@ -170,7 +168,7 @@ const LiveAuctionRoom = () => {
           currentSocket = initializeSocket(prop);
           setSocket(currentSocket);
           console.log(prop);
-          setCurrentBid(prop["Reserve Price (Rs)"]);
+          setCurrentBid(prop.reservePrice);
         }
       } catch (error) {
         console.error("Access check error:", error);
@@ -195,7 +193,7 @@ const LiveAuctionRoom = () => {
         if (!property) return;
 
         const response = await api.get(
-          `/auto-bidding/settings/${property["Auction ID"]}`
+          `/auto-bidding/settings/${property._id}`
         );
 
         if (response.data.success && response.data.data) {
@@ -234,7 +232,7 @@ const LiveAuctionRoom = () => {
         // Emit timer update to other participants
         if (socket?.connected) {
           socket.emit("auction-timer", {
-            auctionId: property["Auction ID"],
+            auctionId: property._id,
             timeLeft: remaining,
           });
         }
@@ -269,7 +267,7 @@ const LiveAuctionRoom = () => {
     }
 
     socket.emit("place-bid", {
-      auctionId: property["Auction ID"],
+      auctionId: property._id,
       bidAmount: amount,
     });
 
@@ -292,7 +290,7 @@ const LiveAuctionRoom = () => {
       const newValue = !isAutoBidding;
       // Save to server first
       const response = await api.post("/auto-bidding/settings", {
-        auctionId: property["Auction ID"],
+        auctionId: property._id,
         enabled: newValue,
         maxAmount: parseFloat(maxAutoBidAmount),
         increment: parseInt(autoBidIncrement),
@@ -363,12 +361,12 @@ const LiveAuctionRoom = () => {
             <Building2 className="w-6 h-6 text-primary" />
             <div>
               <h2 className="text-xl font-semibold">
-                {property["Property Type"]}
+                {property.propertyType || "Untitled Property"}
               </h2>
               <div className="flex items-center gap-2 text-gray-500 mt-1">
                 <MapPin className="w-4 h-4" />
                 <span>
-                  {property["Property Location (City)"]}, {property["State"]}
+                  {property.propertyLocation}, {property.state}
                 </span>
               </div>
             </div>
@@ -507,7 +505,7 @@ const LiveAuctionRoom = () => {
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Clock className="w-4 h-4" />
-                <span>Session started at {property["Auction Date"]}</span>
+                <span>Session started at {new Date(property.auctionDate).toLocaleDateString()}</span>
               </div>
             </div>
 

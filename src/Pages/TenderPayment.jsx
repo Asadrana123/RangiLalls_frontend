@@ -31,7 +31,7 @@ const TenderPayment = () => {
       <div className="mb-8">
         <h2 className="text-xl">
           <span className="text-gray-600">AUCTION ID : </span>
-          <span className="text-primary">{selectedProperty['Auction ID']}</span>
+          <span className="text-primary">{selectedProperty._id}</span>
         </h2>
       </div>
 

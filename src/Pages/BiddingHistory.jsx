@@ -23,7 +23,7 @@ const BiddingHistory = () => {
       try {
         setLoading(true);
         const response = await api.get('/auth/bidding-history');
-        
+        console.log(response)
         // Assuming the bids come with property details already populated
         // If not, you might need to fetch property details separately
         setBids(response.data.data);
@@ -42,9 +42,9 @@ const BiddingHistory = () => {
   // Filter bids based on search term and filter type
   const filteredBids = bids.filter(bid => {
     const matchesSearch = 
-      bid.property?.["CUSTOMER NAME"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bid.property?.["Property Type"]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bid.property?.["Property Location (City)"]?.toLowerCase().includes(searchTerm.toLowerCase());
+      bid.property?.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bid.property?.propertyType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bid.property?.propertyLocation?.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (filter === 'all') return matchesSearch;
     if (filter === 'won') return matchesSearch && bid.isWinningBid;
@@ -138,7 +138,7 @@ const BiddingHistory = () => {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
           {filteredBids.map((bid, index) => (
             <div key={index} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
               <div className="flex flex-col md:flex-row">
@@ -151,25 +151,25 @@ const BiddingHistory = () => {
                     
                     <div>
                       <h3 className="font-semibold text-lg">
-                        {bid.property?.["Property Type"] || "Unknown Property Type"}
+                        {bid.property?.propertyType || "Unknown Property Type"}
                       </h3>
                       <div className="flex items-center text-gray-500 text-sm mt-1">
                         <FaMapMarkerAlt className="mr-1" />
                         <span>
-                          {bid.property?.["Property Location (City)"] || "Unknown Location"}, 
+                          {bid.property?.propertyLocation || "Unknown Location"}, 
                           {bid.property?.["State"] || ""}
                         </span>
                       </div>
                       
                       <div className="mt-3 flex flex-wrap gap-2">
                         <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs">
-                          Loan ID: {bid.property?.["Loan Account No"] || "N/A"}
+                          Loan A/C: {bid.property?.loanAccountNo || "N/A"}
                         </span>
                         <span className="bg-gray-50 text-gray-700 px-2 py-1 rounded-md text-xs">
-                          Owner: {bid.property?.["CUSTOMER NAME"] || "N/A"}
+                          Owner: {bid.property?.customerName|| "N/A"}
                         </span>
                         <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded-md text-xs">
-                          Auction Date: {bid.property?.["Auction Date"] || "N/A"}
+                          Auction Date: {bid.property?.auctionDate || "N/A"}
                         </span>
                       </div>
                     </div>
