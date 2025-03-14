@@ -169,7 +169,7 @@ const BiddingHistory = () => {
                           Owner: {bid.property?.customerName|| "N/A"}
                         </span>
                         <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded-md text-xs">
-                          Auction Date: {bid.property?.auctionDate || "N/A"}
+                          Auction Date: {new Date(bid.property?.auctionDate).toLocaleDateString() || "N/A"}
                         </span>
                       </div>
                     </div>
