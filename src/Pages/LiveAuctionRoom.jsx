@@ -115,7 +115,7 @@ const LiveAuctionRoom = () => {
 
         setTimeout(() => {
           newSocket.emit('place-bid', {
-            auctionId: property._id,
+            auctionId: prop?._id,
             bidAmount: update.currentBid + autoBidIncrementRef.current
           });
         }, 1000);
