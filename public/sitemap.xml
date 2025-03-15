@@ -1,11 +1,17 @@
-// Create a script that generates a dynamic sitemap
 import fs from 'fs';
 import axios from 'axios';
 
 async function generateSitemap() {
-  // Fetch all properties from your API
-  const properties = await axios.get('https://rangilalls-backend.onrender.com/api/properties');
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+  try {
+    const response = await axios.get('https://rangilalls-backend.onrender.com/api/properties');
+
+    if (!response.data || !Array.isArray(response.data)) {
+      throw new Error('Invalid API response');
+    }
+
+    const properties = response.data;
+
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.rangilalls.com/</loc>
@@ -19,17 +25,30 @@ async function generateSitemap() {
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  ${properties.data.map(property => `
+  ${properties
+    .map((property) => {
+      if (!property._id || !property.updatedAt) return ''; // Ensure required fields exist
+      return `
   <url>
     <loc>https://www.rangilalls.com/property/${property._id}</loc>
     <lastmod>${new Date(property.updatedAt).toISOString().split('T')[0]}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
-  </url>
-  `).join('')}
+  </url>`;
+    })
+    .join('')}
 </urlset>`;
 
-  fs.writeFileSync('./public/sitemap.xml', sitemap);
+    // Ensure the 'public' directory exists
+    if (!fs.existsSync('./public')) {
+      fs.mkdirSync('./public', { recursive: true });
+    }
+
+    fs.writeFileSync('./public/sitemap.xml', sitemap, 'utf8');
+    console.log('✅ Sitemap successfully generated!');
+  } catch (error) {
+    console.error('❌ Failed to generate sitemap:', error.message);
+  }
 }
 
 generateSitemap();
