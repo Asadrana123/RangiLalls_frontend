@@ -29,16 +29,34 @@ import ProfileSettings from "./Pages/ProfileSettings";
 import InterestedProperties from "./Pages/InterestedProperties";
 import BiddingHistory from "./Pages/BiddingHistory";
 
+// Import policy pages
+import Feedback from "./Pages/Feedback";
+import Disclaimer from "./Pages/Disclaimer";
+import TermsOfUse from "./Pages/TermsOfUse";
+import WebsiteAccessibility from "./Pages/WebsiteAccessibility";
+import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import HyperLinkPolicy from "./Pages/HyperLinkPolicy";
+import CopyrightPolicy from "./Pages/CopyrightPolicy";
+import ArchivalPolicy from "./Pages/ArchivalPolicy";
+import WebsiteSecurityPolicy from "./Pages/WebsiteSecurityPolicy";
+import WebsiteMonitoringPolicy from "./Pages/WebsiteMonitoringPolicy";
+import ContentReviewPolicy from "./Pages/ContentReviewPolicy";
+import WebsiteContingencyManagementPolicy from "./Pages/WebsiteContingencyManagementPolicy";
+import ContentContributionPolicy from "./Pages/ContentContributionPolicy";
+
 function App() {
   const dispatch = useDispatch();
   const propertyLoading = useSelector((state) => state.property.loading);
   const userLoading = useSelector((state) => state.auth.loading);
+
   useEffect(() => {
     dispatch(checkAuthStatus());
   }, [dispatch]);
+
   useEffect(() => {
     dispatch(fetchProperties());
   }, [dispatch]);
+
   if (propertyLoading || userLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -46,6 +64,7 @@ function App() {
       </div>
     );
   }
+
   return (
     <Router>
       <div className="min-h-screen flex flex-col">
@@ -62,6 +81,22 @@ function App() {
             <Route path="/verify-email/:token" element={<VerifyEmail />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
+            
+            {/* Policy Pages */}
+            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/disclaimer" element={<Disclaimer />} />
+            <Route path="/term-of-use" element={<TermsOfUse />} />
+            <Route path="/website-accessibility" element={<WebsiteAccessibility />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/hyperlinking-policy" element={<HyperLinkPolicy />} />
+            <Route path="/copyright-policy" element={<CopyrightPolicy />} />
+            <Route path="/content-archival-policy" element={<ArchivalPolicy />} />
+            <Route path="/website-security-policy" element={<WebsiteSecurityPolicy />} />
+            <Route path="/website-monitoring-policy" element={<WebsiteMonitoringPolicy />} />
+            <Route path="/content-review-policy" element={<ContentReviewPolicy />} />
+            <Route path="/website-contingency-management-policy" element={<WebsiteContingencyManagementPolicy />} />
+            <Route path="/content-map" element={<ContentContributionPolicy />} />
+            
             <Route element={<PrivateAdminRoute />}>
               <Route path="/admin" element={<AdminDashboard />} />
             </Route>
