@@ -85,7 +85,7 @@ function App() {
             {/* Policy Pages */}
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/disclaimer" element={<Disclaimer />} />
-            <Route path="/term-of-use" element={<TermsOfUse />} />
+            <Route path="/terms-of-use" element={<TermsOfUse />} />
             <Route path="/website-accessibility" element={<WebsiteAccessibility />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/hyperlinking-policy" element={<HyperLinkPolicy />} />
