@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { isRegistrationOpen, isAuctionLive, getTimeRemaining } from "../../Utils/helper";
 import { useSelector } from "react-redux";
 import api from "../../Utils/axios"
-
+import {formatDateToDDMMMYY} from "../../Utils/helper";
 const AuctionCard = ({ auction }) => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
@@ -179,7 +179,7 @@ const AuctionCard = ({ auction }) => {
             <div>
               <p className="text-sm text-gray-500 mb-1">Auction Date</p>
               <p className="text-lg font-semibold text-gray-800">
-                {auction.auctionDate ? new Date(auction.auctionDate).toLocaleDateString() : "N/A"}
+                {auction.auctionDate ? formatDateToDDMMMYY(auction.auctionDate) : "N/A"}
               </p>
             </div>
             
@@ -222,7 +222,7 @@ const AuctionCard = ({ auction }) => {
 
         {/* Participation Info */}
         <div className="text-sm text-gray-600">
-          EMD Submission deadline: {auction.emdSubmission ? new Date(auction.emdSubmission).toLocaleDateString() : "N/A"}
+          EMD Submission deadline: {auction.emdSubmission ? formatDateToDDMMMYY(auction.emdSubmission) : "N/A"}
         </div>
       </div>
 

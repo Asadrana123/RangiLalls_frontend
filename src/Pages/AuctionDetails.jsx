@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import PropertyMap from "../Components/AuctionDetails/PropertyMap";
 import api from "../Utils/axios"
+import {formatDateToDDMMMYY} from "../Utils/helper";
 import {
   Calendar,
   MapPin,
@@ -142,7 +143,7 @@ const PropertyDetails = () => {
               <InfoCard
                 icon={Timer}
                 label="Auction Date"
-                value={formatDate(property.auctionDate)}
+                value={formatDateToDDMMMYY(property.auctionDate)}
               />
               <InfoCard
                 icon={Users}
@@ -201,7 +202,7 @@ const PropertyDetails = () => {
                         EMD Submission Deadline
                       </p>
                       <p className="font-medium">
-                        {formatDate(property.emdSubmission)}
+                        {formatDateToDDMMMYY(property.emdSubmission)}
                       </p>
                     </div>
                   </div>
@@ -209,7 +210,7 @@ const PropertyDetails = () => {
                     <div className="w-2 h-2 rounded-full bg-[#d12b3f]" />
                     <div>
                       <p className="text-sm text-gray-500">Auction Date</p>
-                      <p className="font-medium">{formatDate(property.auctionDate)}</p>
+                      <p className="font-medium">{formatDateToDDMMMYY(property.auctionDate)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
