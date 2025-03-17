@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, X, Loader } from 'lucide-react';
+import { Save, AlertCircle, X, Loader, Clock } from 'lucide-react';
 import api from '../../Utils/axios';
 
 const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
@@ -19,6 +19,12 @@ const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
     { key: 'emdSubmission', label: 'EMD Submission Date', type: 'date' }
   ];
 
+  // Add time fields for auction start and end
+  const timeFields = [
+    { key: 'auctionStartTime', label: 'Auction Start Time', defaultHour: 10, defaultMinute: 0 },
+    { key: 'auctionEndTime', label: 'Auction End Time', defaultHour: 17, defaultMinute: 0 }
+  ];
+
   useEffect(() => {
     if (auction) {
       const initialData = {};
@@ -31,6 +37,20 @@ const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
           initialData[field.key] = auction[field.key] || '';
         }
       });
+
+      // Handle auction start and end times
+      timeFields.forEach(field => {
+        if (auction[field.key]) {
+          const date = new Date(auction[field.key]);
+          // Format time as HH:MM for time input
+          initialData[field.key] = date.toTimeString().substring(0, 5);
+        } else {
+          // Set default times if not present
+          const defaultTime = `${field.defaultHour.toString().padStart(2, '0')}:${field.defaultMinute.toString().padStart(2, '0')}`;
+          initialData[field.key] = defaultTime;
+        }
+      });
+
       setFormData(initialData);
     }
   }, [auction]);
@@ -55,6 +75,22 @@ const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
       // Handle date fields
       if (dataToSubmit.auctionDate) {
         dataToSubmit.auctionDate = new Date(dataToSubmit.auctionDate);
+        
+        // Set auction start time using the date from auctionDate and time from auctionStartTime
+        if (dataToSubmit.auctionStartTime) {
+          const [hours, minutes] = dataToSubmit.auctionStartTime.split(':');
+          const startTime = new Date(dataToSubmit.auctionDate);
+          startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          dataToSubmit.auctionStartTime = startTime;
+        }
+        
+        // Set auction end time using the date from auctionDate and time from auctionEndTime
+        if (dataToSubmit.auctionEndTime) {
+          const [hours, minutes] = dataToSubmit.auctionEndTime.split(':');
+          const endTime = new Date(dataToSubmit.auctionDate);
+          endTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          dataToSubmit.auctionEndTime = endTime;
+        }
       }
       
       if (dataToSubmit.emdSubmission) {
@@ -133,6 +169,45 @@ const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
                   </div>
                 )
               ))}
+              
+              {/* Auction Time Fields Section */}
+              <div className="md:col-span-2 mt-4 border-t pt-4">
+                <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-primary" />
+                  Auction Time Settings
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {timeFields.map(field => (
+                    <div key={field.key}>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {field.label}
+                      </label>
+                      <input
+                        type="time"
+                        name={field.key}
+                        value={formData[field.key] || ''}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {field.key === 'auctionStartTime' 
+                          ? 'Default is 10:00 AM if not set' 
+                          : 'Default is 5:00 PM if not set'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                {auction.auctionExtensionCount > 0 && (
+                  <div className="mt-3 p-3 bg-yellow-50 rounded-md text-sm">
+                    <p className="font-medium text-yellow-800">
+                      This auction has been extended {auction.auctionExtensionCount} times due to last-minute bidding.
+                    </p>
+                    <p className="text-yellow-700 mt-1">
+                      Editing the end time will override any automatic extensions.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-end space-x-3 pt-4 border-t">
