@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Save, AlertCircle, CheckCircle, X } from 'lucide-react';
 import api from '../../Utils/axios';
-
 const PropertyAddForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -54,34 +53,6 @@ const PropertyAddForm = () => {
       if (propertyData.reservePrice) {
         propertyData.reservePrice = Number(propertyData.reservePrice);
       }
-
-      // Convert date strings to Date objects (ISO format for APIs)
-      if (propertyData.emdSubmission) {
-        const [day, month, year] = propertyData.emdSubmission.split('-');
-        const monthMap = {
-          'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-          'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-        };
-        propertyData.emdSubmission = new Date(
-          2000 + parseInt(year), 
-          monthMap[month], 
-          parseInt(day)
-        ).toISOString();
-      }
-      
-      if (propertyData.auctionDate) {
-        const [day, month, year] = propertyData.auctionDate.split('-');
-        const monthMap = {
-          'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-          'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-        };
-        propertyData.auctionDate = new Date(
-          2000 + parseInt(year), 
-          monthMap[month], 
-          parseInt(day)
-        ).toISOString();
-      }
-
       const response = await api.post('/admin/add-property', propertyData);
 
       if (response.data.success) {
@@ -286,7 +257,7 @@ const PropertyAddForm = () => {
                 EMD Submission Date <span className="text-red-500">*</span>
               </label>
               <input
-                type="text"
+                type="date"
                 name="emdSubmission"
                 value={formData.emdSubmission}
                 onChange={handleChange}
@@ -302,7 +273,7 @@ const PropertyAddForm = () => {
                 Auction Date <span className="text-red-500">*</span>
               </label>
               <input
-                type="text"
+                type="date"
                 name="auctionDate"
                 value={formData.auctionDate}
                 onChange={handleChange}

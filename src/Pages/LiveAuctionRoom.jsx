@@ -55,10 +55,10 @@ const LiveAuctionRoom = () => {
 
     // Set auction hours (10 AM to 5 PM)
     const startTime = new Date(today);
-    startTime.setHours(2, 0, 0, 0);
+    startTime.setHours(10, 0, 0, 0);
 
     const endTime = new Date(today);
-    endTime.setHours(9, 0, 0, 0);
+    endTime.setHours(17, 0, 0, 0);
 
     if (today < startTime) {
       const temp = Math.floor((endTime - today) / 1000);

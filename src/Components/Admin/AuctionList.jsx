@@ -12,7 +12,7 @@ import { Edit, Trash2, MoreVertical } from "lucide-react";
 import EditAuctionModal from "./EditAuction";
 import DeleteAuctionModal from "./DeleteAuction";
 import DocumentViewer from "./DocumentViewer";
-
+import {formatDateToDDMMMYY} from "../../Utils/helper";
 const AuctionList = () => {
   // Get auctions/properties from Redux state instead of making API call
   const { properties } = useSelector((state) => state.property);
@@ -112,12 +112,8 @@ const AuctionList = () => {
     fetchRegistrationsForAuction(auction._id);
   };
 
-  // Function to format date for display
-  const formatDate = (dateValue) => {
-    if (!dateValue) return "N/A";
-    if (typeof dateValue === 'string') return dateValue;
-    return new Date(dateValue).toLocaleDateString();
-  };
+
+  
 
   // Status badge component for registration status
   const StatusBadge = ({ status }) => {
@@ -517,10 +513,10 @@ const AuctionList = () => {
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm">
                       <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                      {formatDate(auction.auctionDate)}
+                      {formatDateToDDMMMYY(auction.auctionDate)}
                     </div>
                     <div className="text-xs text-gray-500">
-                      EMD by: {formatDate(auction.emdSubmission)}
+                      EMD by: {formatDateToDDMMMYY(auction.emdSubmission)}
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
