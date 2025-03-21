@@ -15,7 +15,6 @@ import {
   ArrowBigUp,
 } from "lucide-react";
 import { useParams } from "react-router-dom";
-let temp = 0;
 // Main component
 const LiveAuctionRoom = () => {
   // Redux state
@@ -29,6 +28,9 @@ const LiveAuctionRoom = () => {
   const [error, setError] = useState("");
   const [socket, setSocket] = useState(null);
   const [wasAutoBiddingEnabled, setWasAutoBiddingEnabled] = useState(false);
+  const [minAutoBidAmount, setMinAutoBidAmount] = useState(0);
+  const [minManualBid, setMinManualBid] = useState(0);
+  const socketInitializedRef = useRef(false);
   // Bidding state
   const [currentBid, setCurrentBid] = useState(0);
   const [currentBidder, setCurrentBidder] = useState(null);
@@ -39,7 +41,8 @@ const LiveAuctionRoom = () => {
   const autoBiddingRef = useRef(false);
   const maxAutoBidAmountRef = useRef("");
   const autoBidIncrementRef = useRef(1000);
-
+  const [isProcessingAutoBid, setIsProcessingAutoBid] = useState(false);
+  const lastProcessedBidRef = useRef(null);
   // Auto-bidding state
   const [isAutoBidding, setIsAutoBidding] = useState(false);
   const [maxAutoBidAmount, setMaxAutoBidAmount] = useState("");
@@ -49,31 +52,25 @@ const LiveAuctionRoom = () => {
   // Socket initialization function
   const calculateTimeRemaining = () => {
     if (!property) return null;
-  
+
     const now = new Date();
-    
-    // Use the property's stored start and end times
-    const startTime = new Date(property.auctionStartTime || property.auctionDate);
-    if (!property.auctionStartTime) {
-      startTime.setHours(10, 0, 0, 0); // Default to 10 AM if not set
-    }
-    
-    const endTime = new Date(property.auctionEndTime || property.auctionDate);
+
+    // Use the property's stored end time if available
+    const endTime = property.auctionEndTime
+      ? new Date(property.auctionEndTime)
+      : new Date(property.auctionDate);
+
+    // If no specific end time is set, default to 5 PM
     if (!property.auctionEndTime) {
-      endTime.setHours(17, 0, 0, 0); // Default to 5 PM if not set
+      endTime.setHours(17, 0, 0, 0);
     }
-  
-    if (now < startTime) {
-      // Auction hasn't started yet
-      return Math.floor((endTime - now) / 1000);
-    }
-  
-    // If after end time, show 0
+
+    // If auction has ended
     if (now > endTime) {
       return 0;
     }
-  
-    // During auction, show remaining time
+
+    // Return remaining seconds
     return Math.floor((endTime - now) / 1000);
   };
   const initializeSocket = (prop) => {
@@ -85,16 +82,22 @@ const LiveAuctionRoom = () => {
       console.log("Connected to auction server");
       newSocket.emit("join-auction", prop._id);
     });
-    newSocket.on('auction-extended', (newEndTimeStr) => {
-      console.log('Auction extended to:', newEndTimeStr);
-      
+    newSocket.on("min-bid-update", (data) => {
+      console.log(currentBid);
+      if(data.minManualBid!==0) setMinManualBid(data.minManualBid);
+    });
+    newSocket.on("auction-extended", (newEndTimeStr) => {
+      console.log("Auction extended to:", newEndTimeStr);
+
       // Update the property object with the new end time
-      setProperty(prevProperty => ({
+      setProperty((prevProperty) => ({
         ...prevProperty,
-        auctionEndTime: newEndTimeStr
+        auctionEndTime: newEndTimeStr,
+        auctionExtensionCount: (prevProperty.auctionExtensionCount || 0) + 1,
       }));
     });
     newSocket.on("auction-status", (status) => {
+      console.log(currentBid, status.currentBid);
       setCurrentBid(status.currentBid || prop.reservePrice);
       setCurrentBidder(status.currentBidder);
       setParticipants(status.participants);
@@ -104,51 +107,80 @@ const LiveAuctionRoom = () => {
       setParticipants(status.count);
     });
     newSocket.on("bid-update", (update) => {
+      console.log("Received bid update:", update);
       setCurrentBid(update.currentBid);
       setCurrentBidder(update.currentBidder);
+      
+      // Update bid history if this is a new bid
       setBidHistory((prev) => {
-        // Check if this bid already exists in history
         const exists = prev.some(
           (bid) =>
             bid.timestamp === update.timestamp &&
             bid.currentBid === update.currentBid &&
             bid.currentBidder?.id === update.currentBidder?.id
         );
-
-        // If it exists, return existing history, otherwise add new bid
         return exists ? prev : [update, ...prev].slice(0, 50);
       });
+      
       setError("");
-      console.log(bidHistory);
-
+      
+      // Prevent duplicate auto-bids by checking if we've already processed this bid
+      const bidSignature = `${update.currentBid}-${update.timestamp}`;
+      if (lastProcessedBidRef.current === bidSignature) {
+        console.log("Already processed this bid, skipping auto-bid check");
+        return;
+      }
+      
+      // Check if we should trigger an auto-bid
       if (
-        autoBiddingRef.current &&
-        update.currentBidder?.id !== user._id &&
-        update.currentBid + autoBidIncrementRef.current <=
+        autoBiddingRef.current &&                                  // Auto-bidding is enabled
+        !isProcessingAutoBid &&                                    // Not already processing an auto-bid
+        update.currentBidder?.id !== user._id &&                   // Bid is not from current user
+        update.currentBid + autoBidIncrementRef.current <=         // Next bid won't exceed maximum
           parseFloat(maxAutoBidAmountRef.current)
       ) {
+        console.log("Auto-bid conditions met, preparing to place auto-bid");
+        
+        // Mark that we're processing an auto-bid and record this bid
+        setIsProcessingAutoBid(true);
+        lastProcessedBidRef.current = bidSignature;
+        
+        // Calculate the next bid amount
+        const nextBidAmount = update.currentBid + autoBidIncrementRef.current;
+        
+        // Use setTimeout to delay the auto-bid
         setTimeout(() => {
+          console.log("Placing auto-bid:", nextBidAmount);
           newSocket.emit("place-bid", {
             auctionId: prop?._id,
-            bidAmount: update.currentBid + autoBidIncrementRef.current,
+            bidAmount: nextBidAmount,
+            isAutoBid: true
           });
-        }, 1000);
+          
+          // Reset the processing flag after a short delay
+          // This prevents multiple auto-bids from being triggered in quick succession
+          setTimeout(() => {
+            setIsProcessingAutoBid(false);
+          }, 1000);
+        }, 3000);
       } else {
         console.log(
           "Auto-bidding not triggered because:",
           !autoBiddingRef.current
             ? "auto-bidding is off"
+            : isProcessingAutoBid
+            ? "already processing an auto-bid"
             : update.currentBidder?.id === user._id
             ? "bid is from current user"
             : "next bid would exceed maximum"
         );
       }
-    });
+    });;
 
     //newSocket.on("timer-update", setTimeLeft);
     newSocket.on("bid-error", (errorMessage) => {
       setError(errorMessage);
-      setIsAutoBidding(false);
+      console.log(errorMessage);
     });
 
     return newSocket;
@@ -157,7 +189,7 @@ const LiveAuctionRoom = () => {
   // Main initialization effect
   useEffect(() => {
     let currentSocket = null;
-
+  
     const checkAccess = async () => {
       try {
         if (!id) {
@@ -165,26 +197,30 @@ const LiveAuctionRoom = () => {
           setLoading(false);
           return;
         }
-
+  
         const prop = properties.find((p) => p._id === id);
         if (!prop) {
           setError("Property not found");
           setLoading(false);
           return;
         }
-
+  
         setProperty(prop);
-
+  
         const response = await api.get(`/auction/check-access/${prop._id}`);
         if (!response.data.success) {
           setError(response.data.error);
           setHasAccess(false);
         } else {
           setHasAccess(true);
-          currentSocket = initializeSocket(prop);
-          setSocket(currentSocket);
-          console.log(prop);
-          setCurrentBid(prop.reservePrice);
+          
+          // Only initialize socket if it hasn't been initialized yet
+          if (!socketInitializedRef.current) {
+            console.log("Initializing socket connection");
+            currentSocket = initializeSocket(prop);
+            setSocket(currentSocket);
+            socketInitializedRef.current = true;
+          }
         }
       } catch (error) {
         console.error("Access check error:", error);
@@ -193,16 +229,44 @@ const LiveAuctionRoom = () => {
         setLoading(false);
       }
     };
-
+  
     checkAccess();
-
+  
     // Cleanup function
     return () => {
       if (currentSocket) {
+        console.log("Disconnecting socket");
         currentSocket.disconnect();
+        socketInitializedRef.current = false;
       }
     };
   }, [id, properties]);
+  useEffect(() => {
+    const fetchAuctionData = async () => {
+      try {
+        if (!property) return;
+
+        // Fetch current auto-bid info
+        const response = await api.get(`/auto-bidding/info/${property._id}`);
+
+        if (response.data.success) {
+          // Set minimum auto-bid amount for new auto-bids - must be higher than highest auto-bid
+          setMinAutoBidAmount(response.data.minAutoBidAmount);
+          // Set minimum manual bid amount based on second highest auto-bid + 1
+          // This is already calculated properly on the backend in the minManualBid property
+          const minimumManualBid = Math.max(
+            response.data.minManualBid, // Second highest auto-bid + 1
+            currentBid + 1000 // Or at least 1000 more than current bid
+          );
+          setMinManualBid(minimumManualBid);
+        }
+      } catch (error) {
+        console.error("Error fetching auction data:", error);
+      }
+    };
+
+    fetchAuctionData();
+  }, [property, currentBid]);
   useEffect(() => {
     const fetchAutoBiddingSettings = async () => {
       try {
@@ -224,7 +288,6 @@ const LiveAuctionRoom = () => {
             autoBidIncrementRef.current = settings.increment;
             setMaxAutoBidAmount(settings.maxAmount.toString());
             setAutoBidIncrement(settings.increment);
-            console.log("Loaded auto-bidding settings:", settings);
           }
         }
       } catch (error) {
@@ -271,7 +334,6 @@ const LiveAuctionRoom = () => {
   const handleBidSubmit = (e) => {
     e.preventDefault();
     const amount = parseFloat(bidAmount);
-
     if (isNaN(amount) || amount <= currentBid) {
       setError(
         `Please enter a valid bid amount higher than ₹${currentBid.toLocaleString()}`
@@ -298,12 +360,18 @@ const LiveAuctionRoom = () => {
       // Validation checks
       if (!isAutoBidding) {
         const maxAmount = parseFloat(maxAutoBidAmount);
-
+        console.log(currentBid);
         if (isNaN(maxAmount) || maxAmount <= currentBid) {
-          setError("Please enter a maximum bid amount");
+          setError(
+            "Please enter a maximum bid amount higher than the current bid"
+          );
           return;
         }
-
+        // Check against minimum required auto-bid amount
+        if (minAutoBidAmount > 0 && maxAmount < minAutoBidAmount) {
+          setError("AutoBid limit reached, Please entered different amount");
+          return;
+        }
         // About to enable auto-bidding, so mark it as used
         setWasAutoBiddingEnabled(true);
       }
@@ -332,10 +400,11 @@ const LiveAuctionRoom = () => {
     } catch (error) {
       console.error("Failed to save auto-bidding settings:", error);
       setError(
-        error.response.data.error || "Failed to save auto-bidding settings"
+        error.response?.data?.error || "Failed to save auto-bidding settings"
       );
     }
   };
+
   const handleMaxAmountChange = (e) => {
     const value = e.target.value;
     setMaxAutoBidAmount(value);
@@ -420,7 +489,7 @@ const LiveAuctionRoom = () => {
                   <p className="text-sm text-gray-500">
                     {timeLeft > 0 ? "Time Remaining" : "Auction Status"}
                   </p>
-                  <div className="flex items-center gap-2 text-xl font-mono">
+                  <div className="flex justify-end items-center gap-2 text-xl font-mono">
                     <Timer className="w-5 h-5 text-primary" />
                     {timeLeft === null ? (
                       "Loading..."
@@ -432,6 +501,25 @@ const LiveAuctionRoom = () => {
                       formatTime(timeLeft)
                     )}
                   </div>
+                  {/* {property.auctionExtensionCount > 0 && (
+                    <div className="mt-2 flex items-center gap-1">
+                      <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                      <span className="text-sm text-yellow-600">
+                        Extended {property.auctionExtensionCount}{" "}
+                        {property.auctionExtensionCount === 1
+                          ? "time"
+                          : "times"}
+                        <span className="ml-1 text-xs text-gray-500">
+                          (Ends:{" "}
+                          {new Date(property.auctionEndTime).toLocaleTimeString(
+                            [],
+                            { hour: "2-digit", minute: "2-digit" }
+                          )}
+                          )
+                        </span>
+                      </span>
+                    </div>
+                  )} */}
                 </div>
               </div>
 
@@ -444,10 +532,12 @@ const LiveAuctionRoom = () => {
                       value={bidAmount}
                       onChange={(e) => setBidAmount(e.target.value)}
                       className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                      placeholder={`Min. bid: ₹${(
-                        currentBid + 1000
-                      ).toLocaleString()}`}
-                      min={currentBid + 1000}
+                      placeholder={
+                        minManualBid > 0
+                          ? `Min. bid: ₹${minManualBid.toLocaleString()}`
+                          : `Min. bid: ₹${(currentBid + 1000).toLocaleString()}`
+                      }
+                      min={minManualBid > 0 ? minManualBid : currentBid + 1000}
                       step="1000"
                     />
                   </div>
@@ -535,6 +625,12 @@ const LiveAuctionRoom = () => {
                   <p>{error}</p>
                 </div>
               )}
+              {error && error.includes("AutoBid limit reached") && (
+                <div className="flex items-center gap-2 text-red-500">
+                  <AlertCircle className="w-5 h-5" />
+                  <p>{error}</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -589,7 +685,10 @@ const LiveAuctionRoom = () => {
                         ₹{bid.currentBid.toLocaleString()}
                       </p>
                       <p className="text-sm text-gray-500">
-                        by {bid.currentBidder?.name}
+                        by{" "}
+                        {bid.currentBidder?.id === user._id
+                          ? "You"
+                          : "Other bidder"}
                       </p>
                     </div>
                     <span className="ml-auto text-xs text-gray-400">

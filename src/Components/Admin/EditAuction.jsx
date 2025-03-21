@@ -197,16 +197,6 @@ const EditAuctionModal = ({ auction, onClose, onSuccess }) => {
                     </div>
                   ))}
                 </div>
-                {auction.auctionExtensionCount > 0 && (
-                  <div className="mt-3 p-3 bg-yellow-50 rounded-md text-sm">
-                    <p className="font-medium text-yellow-800">
-                      This auction has been extended {auction.auctionExtensionCount} times due to last-minute bidding.
-                    </p>
-                    <p className="text-yellow-700 mt-1">
-                      Editing the end time will override any automatic extensions.
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
 
